@@ -1,0 +1,139 @@
+ <template>
+  <v-main>
+    <NavAndFooter />
+    <v-card class="mx-auto" max-width="100%" tile>
+      <v-col>
+        <p style="text-align: center; margin: 0;">
+          <v-avatar size="100">
+            <v-img :src="`${user.photo}`"></v-img>
+          </v-avatar>
+        </p>
+      </v-col>
+      <v-list-item color="rgba(0, 0, 0, .4)">
+        <v-list-item-content justify="center">
+          <v-list-item-title class="title" style="text-align: center;">Логин: {{username}}</v-list-item-title>
+          <v-list-item-title class="title" style="text-align: center;">Имя: {{user.first_name}}</v-list-item-title>
+          <v-list-item-title class="title" style="text-align: center;">Фамилия: {{user.last_name}}</v-list-item-title>
+          <v-list-item-title class="title" style="text-align: center;">Почта: {{user.email}}</v-list-item-title>
+          <!--<v-btn color="primary">Редактировать</v-btn>-->
+          <div style="margin-top: 15px; margin-bottom: 10px;">
+            <v-row justify="center">
+              <v-dialog v-model="dialog" persistent max-width="600px">
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn color="primary" dark  v-bind="attrs" v-on="on">
+                    Pедактировать
+                  </v-btn>
+                </template>
+                <v-card>
+                  <v-card-title>
+                    <span class="text-h5">Редактировать профиль</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                      <v-col cols="12">
+                          <v-text-field
+                            label="Ссылка на фотографию"
+                            hint="Например, https://cdn.vuetifyjs.com/images/john.jpg"
+                            v-model="link"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <v-text-field
+                            label="Логин*"
+                            v-model="login"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <v-text-field
+                            label="E-mail*"
+                            v-model="email"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <v-text-field
+                            label="Имя*"
+                            v-model="name"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="6" md="6">
+                          <v-text-field
+                            label="Фамилия*"
+                            v-model="family"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                    <small>*Обязательные поля</small>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="blue darken-1" text @click="dialog = false">Закрыть</v-btn>
+                    <v-btn color="blue darken-1" text  @click="updateUser">Сохранить</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </v-row>
+          </div>
+        </v-list-item-content>
+      </v-list-item>
+    </v-card>
+  </v-main>
+</template>
+<script>
+import NavAndFooter from "../components/NavAndFooter";
+export default {
+  components: { NavAndFooter },
+  metaInfo: {
+    title: "Профиль - Цитадель"
+  },
+  data() {
+    return {
+      user: [],
+      dialog: false,
+      link: '',
+      login: '',
+      email: '',
+      name: '',
+      family: ''
+    };
+  },
+  created() {
+    this.username = localStorage.getItem("username");
+    this.users();
+  },
+  methods: {
+    users() {
+      window.jQuery.get(
+        "https://powerful-castle-67781.herokuapp.com/api/user/" + this.username + "/",
+        data => {
+          this.user = data;
+        }
+      );
+    },
+    updateUser(){
+      const login = this.login
+      window.jQuery.ajax({
+          url: 'https://powerful-castle-67781.herokuapp.com/api/update_profile/' + this.username + '/',
+          data:{ first_name: this.name, username: this.login, last_name: this.family, email: this.email, photo: this.link },
+          type: 'PUT',
+          success: function(data) {
+            alert("Данные обновлены.")
+            if( localStorage.getItem("username") !== login){
+              localStorage.removeItem("username") 
+              localStorage.setItem('username', login)
+            }
+        },
+          fail: function(url){
+            alert(url.responseText)
+          }
+      });
+    },
+  }
+};
+</script>
