@@ -5,10 +5,11 @@
 </template>
 
 <script>
+import $ from 'jquery';
 export default {
   created() {
     if (localStorage.getItem("auth-token")) {
-      window.jQuery.ajaxSetup({
+      $.ajaxSetup({
         headers: {
           Authorization: "Token " + localStorage.getItem("auth-token")
         }

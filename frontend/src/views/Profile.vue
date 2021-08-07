@@ -15,14 +15,11 @@
           <v-list-item-title class="title" style="text-align: center;">Имя: {{user.first_name}}</v-list-item-title>
           <v-list-item-title class="title" style="text-align: center;">Фамилия: {{user.last_name}}</v-list-item-title>
           <v-list-item-title class="title" style="text-align: center;">Почта: {{user.email}}</v-list-item-title>
-          <!--<v-btn color="primary">Редактировать</v-btn>-->
           <div style="margin-top: 15px; margin-bottom: 10px;">
             <v-row justify="center">
               <v-dialog v-model="dialog" persistent max-width="600px">
                 <template v-slot:activator="{ on, attrs }">
-                  <v-btn color="primary" dark  v-bind="attrs" v-on="on">
-                    Pедактировать
-                  </v-btn>
+                  <v-btn color="primary" dark v-bind="attrs" v-on="on">Pедактировать</v-btn>
                 </template>
                 <v-card>
                   <v-card-title>
@@ -31,12 +28,13 @@
                   <v-card-text>
                     <v-container>
                       <v-row>
-                      <v-col cols="12">
+                        <v-col cols="12">
                           <v-text-field
                             label="Ссылка на фотографию"
                             hint="Например, https://cdn.vuetifyjs.com/images/john.jpg"
                             v-model="link"
                             required
+                            clearable
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
@@ -44,28 +42,19 @@
                             label="Логин*"
                             v-model="login"
                             required
+                            clearable
+                            :value="username"
+                            @change="username = $event"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
-                          <v-text-field
-                            label="E-mail*"
-                            v-model="email"
-                            required
-                          ></v-text-field>
+                          <v-text-field label="E-mail*" v-model="email" required clearable></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
-                          <v-text-field
-                            label="Имя*"
-                            v-model="name"
-                            required
-                          ></v-text-field>
+                          <v-text-field label="Имя*" v-model="name" required clearable></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
-                          <v-text-field
-                            label="Фамилия*"
-                            v-model="family"
-                            required
-                          ></v-text-field>
+                          <v-text-field label="Фамилия*" v-model="family" required clearable></v-text-field>
                         </v-col>
                       </v-row>
                     </v-container>
@@ -74,7 +63,7 @@
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="blue darken-1" text @click="dialog = false">Закрыть</v-btn>
-                    <v-btn color="blue darken-1" text  @click="updateUser">Сохранить</v-btn>
+                    <v-btn color="blue darken-1" text @click="updateUser">Сохранить</v-btn>
                   </v-card-actions>
                 </v-card>
               </v-dialog>
@@ -86,6 +75,7 @@
   </v-main>
 </template>
 <script>
+import $ from "jquery";
 import NavAndFooter from "../components/NavAndFooter";
 export default {
   components: { NavAndFooter },
@@ -96,11 +86,11 @@ export default {
     return {
       user: [],
       dialog: false,
-      link: '',
-      login: '',
-      email: '',
-      name: '',
-      family: ''
+      link: "",
+      login: "",
+      email: "",
+      name: "",
+      family: ""
     };
   },
   created() {
@@ -109,31 +99,49 @@ export default {
   },
   methods: {
     users() {
-      window.jQuery.get(
-        "https://powerful-castle-67781.herokuapp.com/api/user/" + this.username + "/",
+      $.get(
+        "http://localhost:8002/api/user/" +
+          this.username +
+          "/",
         data => {
           this.user = data;
+          (this.name = data.first_name),
+            (this.login = this.username),
+            (this.family = data.last_name),
+            (this.email = data.email),
+            (this.link = data.photo);
         }
       );
     },
-    updateUser(){
-      const login = this.login
-      window.jQuery.ajax({
-          url: 'https://powerful-castle-67781.herokuapp.com/api/update_profile/' + this.username + '/',
-          data:{ first_name: this.name, username: this.login, last_name: this.family, email: this.email, photo: this.link },
-          type: 'PUT',
-          success: function(data) {
-            alert("Данные обновлены.")
-            if( localStorage.getItem("username") !== login){
-              localStorage.removeItem("username") 
-              localStorage.setItem('username', login)
-            }
+    updateUser() {
+      const login = this.login;
+      $.ajax({
+        url:
+          "http://localhost:8002/api/update_profile/" +
+          this.username +
+          "/",
+        data: {
+          first_name: this.name,
+          username: this.login,
+          last_name: this.family,
+          email: this.email,
+          photo: this.link
         },
-          fail: function(url){
-            alert(url.responseText)
+        type: "PUT",
+        success: function(data) {
+          if (localStorage.getItem("username") !== login) {
+            localStorage.removeItem("username");
+            localStorage.setItem("username", login);
           }
+        },
+        error: function(response) {
+          let err = response.responseJSON;
+          for (let key in err) {
+            alert(err[key].toString());
+          }
+        }
       });
-    },
+    }
   }
 };
 </script>

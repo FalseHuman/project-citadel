@@ -13,7 +13,8 @@
                 fab
                 v-bind="attrs"
                 v-on="on"
-                style="margin-bottom: 10px; margin-top: 0;"
+                style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
+                title="Добавить"
               >
                 <v-icon dark>mdi-plus</v-icon>
               </v-btn>
@@ -23,6 +24,7 @@
                 small
                 fab
                 style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
+                title="Обновить"
               >
                 <v-icon dark @click="userpays">mdi-refresh</v-icon>
               </v-btn>
@@ -79,7 +81,7 @@
           <p>{{year}} год</p>
           <v-col v-for="month in months" :key="month" cols="12" v-show="monthes(month, pays) !== 0">
             <v-card>
-              <v-subheader>{{ month }} {{ monthsPays(month, year) }}</v-subheader>
+              <v-subheader>{{ month }} - {{ monthsPays(month, year) }}</v-subheader>
 
               <v-list two-line>
                 <template v-for="n in pays">
@@ -131,6 +133,7 @@
 </template>
 
 <script>
+import $ from "jquery";
 import NavAndFooter from "../components/NavAndFooter";
 export default {
   components: { NavAndFooter },
@@ -173,8 +176,10 @@ export default {
   },
   methods: {
     userpays() {
-      window.jQuery.get(
-        "https://powerful-castle-67781.herokuapp.com/api/user/" + this.username + "/",
+      $.get(
+        "http://localhost:8002/api/user/" +
+          this.username +
+          "/",
         data => {
           this.pays = data.pays;
           //this.monthes(data.pays)
@@ -213,10 +218,10 @@ export default {
         }
       }
       return (
-        "Потраченно: " +
+        "Потрачено: " +
         minussum.toString() +
         " руб. " +
-        "Полученно: " +
+        "Получено: " +
         sum.toString() +
         " руб."
       );
@@ -231,13 +236,16 @@ export default {
         cost: this.cost,
         month: month[0].toUpperCase() + month.substr(1).toLowerCase()
       };
-      window.jQuery
-        .post("https://powerful-castle-67781.herokuapp.com/api/pays/", payData, data => {})
-        .fail(response => {
-          alert(response.responseText);
-          alert(payData.author_name);
-        });
+      $.post(
+        "http://localhost:8002/api/pays/",
+        payData,
+        data => {}
+      ).fail(response => {
+        alert(response.responseText);
+      });
       this.dialog = false;
+
+      setTimeout(this.userpays, 1500);
     },
     formatDate(date) {
       const options = {
@@ -252,7 +260,7 @@ export default {
     yearDate(date) {
       const options = { year: "numeric" };
       return new Date(date).toLocaleDateString("ru", options);
-    }
+    },
   }
 };
 </script>

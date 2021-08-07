@@ -38,18 +38,10 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
     if (localStorage.getItem('auth-token') !== null || to.path === '/login' || to.path === '/registraitions') {
-      next()
+        next()
     } else {
-      next('/login')
+        next('/login')
     }
-  })
-  
-  export default router
-
-
-/*const router = new VueRouter({
-    mode: 'history',
-    routes
 })
 
-export default router*/
+export default router

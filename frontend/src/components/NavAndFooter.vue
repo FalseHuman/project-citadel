@@ -1,15 +1,40 @@
 <template>
   <div>
-    <v-navigation-drawer v-model="drawer" app>
-      <v-sheet color="grey lighten-4" class="pa-4">
-        <v-avatar class="mb-4" color="grey darken-1" size="64">
-          <img :src="`${user.photo}`" />
-        </v-avatar>
+    <v-navigation-drawer v-model="drawer" :mini-variant.sync="mini" permanent app>
+      <p style="text-align: center; margin: 0;">
+        <v-sheet color="light" class="pa-4">
+          <div v-if="mini===false">
+            <v-avatar class="mb-4" color="grey darken-1" size="64">
+              <img :src="`${user.photo}`" />
+            </v-avatar>
 
-        <div v-if="user.first_name === '' && user.last_name === ''">{{username}} ({{user.email}})</div>
-        <div v-else>{{user.first_name}} {{user.last_name}}</div>
-        <v-btn color="primary" @click="logout">Выход</v-btn>
-      </v-sheet>
+            <div
+              v-if="user.first_name === '' && user.last_name === ''"
+              class="mb-2"
+            >{{username}} ({{user.email}})</div>
+            <div v-else class="mb-2">{{user.first_name}} {{user.last_name}}</div>
+            <v-btn color="primary" @click="logout" class="button-nav" title="Выход">
+              <v-icon>mdi-exit-run</v-icon>
+            </v-btn>
+            <v-btn color="primary" @click="theme" class="button-nav" title="Сменить тему">
+              <v-icon>mdi-theme-light-dark</v-icon>
+            </v-btn>
+            <v-btn
+              color="primary"
+              class="button-nav"
+              title="Свернуть панель"
+              @click.stop="mini = !mini"
+            >
+              <v-icon>mdi-chevron-left</v-icon>
+            </v-btn>
+          </div>
+          <div v-else style="margin-left: -10px;">
+            <v-avatar color="grey darken-1" size="44">
+              <img :src="`${user.photo}`" />
+            </v-avatar>
+          </div>
+        </v-sheet>
+      </p>
 
       <v-divider></v-divider>
 
@@ -29,6 +54,8 @@
 </template>
 
 <script>
+import $ from "jquery";
+
 export default {
   data: () => ({
     drawer: null,
@@ -36,12 +63,13 @@ export default {
       ["mdi-cash", "/", "Расходы/Доходы"],
       ["mdi-account-cog", "/profile", "Настройки профиля"]
     ],
+    mini: true,
     user: []
   }),
   created() {
     this.username = localStorage.getItem("username");
     this.token = localStorage.getItem("auth-token");
-    window.jQuery.ajaxSetup({
+    $.ajaxSetup({
       headers: {
         Authorization: `Token ${localStorage.getItem("auth-token")}`
       }
@@ -50,26 +78,38 @@ export default {
   },
   methods: {
     userinfo() {
-      window.jQuery.get(
-        "https://powerful-castle-67781.herokuapp.com/api/user/" + this.username + "/",
+      $.get(
+        "http://localhost:8002/api/user/" +
+          this.username +
+          "/",
         data => {
           this.user = data;
         }
       );
     },
     logout() {
-      window.jQuery.post(
-        "https://powerful-castle-67781.herokuapp.com/auth/token/logout/",
+      $.post(
+        "http://localhost:8002/auth/token/logout/",
         this.token,
         data => {}
       );
       localStorage.removeItem("auth-token");
       localStorage.removeItem("username");
       window.location = "/login";
+    },
+    theme() {
+      if (localStorage.getItem("theme") !== "true") {
+        localStorage.setItem("theme", true);
+      } else {
+        localStorage.removeItem("theme");
+      }
+      location.reload();
     }
   }
-  /* mounted: function(){
-    this.$nextTick(this.userinfo)
-}*/
 };
 </script>
+<style scoped>
+.button-nav {
+  margin-left: 5px;
+}
+</style>
