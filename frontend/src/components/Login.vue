@@ -3,7 +3,7 @@
     <v-container fluid fill-height class="loginOverlay">
       <v-layout flex align-center justify-center>
         <v-flex xs12 sm4 elevation-6>
-          <v-alert dense outlined type="error" dismissible v-if="non_field_errors !== ''">
+          <v-alert dense outlined type="error" dismissible v-show="non_field_errors.length > 0">
             {{ non_field_errors }}
           </v-alert>
           <v-toolbar class="pt-5 blue darken-4 d-flex justify-space-around">
@@ -19,7 +19,7 @@
                   <v-text-field label="Логин" v-model="username" required></v-text-field>
                   <v-text-field label="Пароль" v-model="password" type="password" required></v-text-field>
                   <v-layout justify-space-between>
-                    <v-btn @click="signIn">Войти</v-btn>
+                    <v-btn  @click="signIn">Войти</v-btn>
                     <a href="/registraitions">Регистрация</a>
                   </v-layout>
                 </v-form>
@@ -60,7 +60,8 @@ export default {
           this.$router.push("/");
           location.reload();
         }
-      ).fail(response => {
+      )
+      .fail(response => {
         let json = response.responseJSON;
         this.non_field_errors = json.non_field_errors.toString()
       });

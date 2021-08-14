@@ -103,6 +103,9 @@
                           <v-btn color="primary" v-bind="attrs" v-on="on">
                             <v-icon>mdi-information</v-icon>
                           </v-btn>
+                          <v-btn color="error" @click="deletePays(n.id)" class="ml-2">
+                            <v-icon>mdi-delete</v-icon>
+                          </v-btn>
                         </template>
                         <template v-slot:default="dialog">
                           <v-card>
@@ -176,20 +179,28 @@ export default {
   },
   methods: {
     userpays() {
-      $.get(
-        "http://localhost:8002/api/user/" +
-          this.username +
-          "/",
-        data => {
-          this.pays = data.pays;
-          //this.monthes(data.pays)
-          let year = [];
-          for (let i = 0; i < this.pays.length; i++) {
-            year.push(this.yearDate(this.pays[i].data));
-          }
-          this.years = Array.from(new Set(year));
+      $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
+        this.pays = data.pays;
+        //this.monthes(data.pays)
+        let year = [];
+        for (let i = 0; i < this.pays.length; i++) {
+          year.push(this.yearDate(this.pays[i].data));
         }
-      );
+        this.years = Array.from(new Set(year));
+      });
+    },
+    deletePays(id) {
+      $.ajax({
+        url: "http://localhost:8002/api/pays/" + id + "/delete_pays/",
+        type: "DELETE",
+        success: function(data) {
+          alert("Удалено");
+        },
+        error: function(response) {
+          alert(response.responseJSON);
+        }
+      });
+      this.userpays();
     },
     monthes(mon, array) {
       let count = 0;
@@ -236,13 +247,11 @@ export default {
         cost: this.cost,
         month: month[0].toUpperCase() + month.substr(1).toLowerCase()
       };
-      $.post(
-        "http://localhost:8002/api/pays/",
-        payData,
-        data => {}
-      ).fail(response => {
-        alert(response.responseText);
-      });
+      $.post("http://localhost:8002/api/pays/", payData, data => {}).fail(
+        response => {
+          alert(response.responseText);
+        }
+      );
       this.dialog = false;
 
       setTimeout(this.userpays, 1500);
@@ -260,7 +269,7 @@ export default {
     yearDate(date) {
       const options = { year: "numeric" };
       return new Date(date).toLocaleDateString("ru", options);
-    },
+    }
   }
 };
 </script>

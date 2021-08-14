@@ -73,7 +73,7 @@ export default {
       headers: {
         Authorization: `Token ${localStorage.getItem("auth-token")}`
       }
-    }),
+    })
       this.userinfo();
   },
   methods: {

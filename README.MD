@@ -1,22 +1,36 @@
 # Project Citadel
 
-## Настройка сборки
+## Setting up the installation
 
-##Django
+## Django
 ```bash
 $ cd backend/citadel
 $ pip install -r ./requirements.txt
+```
+### open settings.py and change the database to your own
+```bash
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'citadel', #change
+        'USER': 'postgres', #change
+        'PASSWORD': '12345', #change
+    }
+}
+```
+### launch Django
+```bash
 $ python manage.py migrate
 $ python manage.py runserver 8002
 ```
 
-##Vue
+## Vue
 ```bash
 $ cd frontend
 $ npm install
 $ npm run serve
 ```
 
-## СУБД PostgreSQL
-Ссылка как установить для [Windows](https://www.youtube.com/watch?v=yYJ74Sc7nw8)
-Ссылка как установить для [Linux](https://losst.ru/ustanovka-postgresql-ubuntu-16-04)
+## DBMS PostgreSQL
+Link how to install for [Windows](https://www.youtube.com/watch?v=yYJ74Sc7nw8)
+Link how to install for [Linux](https://losst.ru/ustanovka-postgresql-ubuntu-16-04)

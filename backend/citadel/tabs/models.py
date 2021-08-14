@@ -6,7 +6,7 @@ from core.settings import DATE_FORMAT
 
 
 class User(AbstractUser):
-    photo = models.URLField(blank=True)
+    photo = models.ImageField(blank=True, null=True)
 
     USERNAME_FIELD = "username"
 

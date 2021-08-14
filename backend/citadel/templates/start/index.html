@@ -6,21 +6,25 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="icon" href="https://image.flaticon.com/icons/png/512/1183/1183888.png">
+    <link rel="icon" href="{% static "favicon.ico" %}">
     <title>Цитадель</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css">
-    <link href="{% static "/css/chunk-vendors.c58d6a62.css" %}" rel="preload" as="style">
-    <link href="{% static "/js/app.50710e96.js" %}" rel="preload" as="script">
-    <link href="{% static "/js/chunk-vendors.fd9123ec.js" %}" rel="preload" as="script">
-    <link href="{% static "/css/chunk-vendors.c58d6a62.css" %}" rel="stylesheet">
+    <link href="{% static "css/app.d755963d.css" %}" rel="preload" as="style">
+    <link href="{% static "css/chunk-vendors.8399a01a.css" %}" rel="preload" as="style">
+    <link href="{% static "js/app.3b16292c.js" %}" rel="preload" as="script">
+    <link href="{% static "js/chunk-vendors.cb9fcb31.js" %}" rel="preload" as="script">
+    <link href="{% static "css/chunk-vendors.8399a01a.css" %}" rel="stylesheet">
+    <link href="{% static "css/app.d755963d.css" %}" rel="stylesheet">
+    <script type="text/javascript"> window.CSRF_TOKEN = "{{ csrf_token }}" </script> 
 </head>
 
 <body><noscript><strong>We're sorry but Цитадель doesn't work properly without JavaScript enabled. Please enable it to
             continue.</strong></noscript>
     <div id="app"></div>
-    <script src="{% static "/js/chunk-vendors.fd9123ec.js" %}"></script>
-    <script src="{% static "/js/app.50710e96.js" %}"></script>
+
+    <script src="{% static "js/chunk-vendors.cb9fcb31.js" %}"></script>
+    <script src="{% static "js/app.3b16292c.js" %}"></script>
 </body>
 <script src="https://code.jquery.com/jquery-3.2.1.min.js"
     integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>

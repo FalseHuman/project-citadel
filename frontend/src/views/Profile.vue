@@ -29,13 +29,12 @@
                     <v-container>
                       <v-row>
                         <v-col cols="12">
-                          <v-text-field
-                            label="Ссылка на фотографию"
-                            hint="Например, https://cdn.vuetifyjs.com/images/john.jpg"
-                            v-model="link"
-                            required
-                            clearable
-                          ></v-text-field>
+                          <v-file-input
+                            accept="image/*"
+                            label="Фото"
+                            prepend-icon="mdi-camera"
+                            @change="onFileChange"
+                          ></v-file-input>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
                           <v-text-field
@@ -63,7 +62,7 @@
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn color="blue darken-1" text @click="dialog = false">Закрыть</v-btn>
-                    <v-btn color="blue darken-1" text @click="updateUser">Сохранить</v-btn>
+                    <v-btn color="blue darken-1" type="submit" text @click="updateUser">Сохранить</v-btn>
                   </v-card-actions>
                 </v-card>
               </v-dialog>
@@ -98,34 +97,50 @@ export default {
     this.users();
   },
   methods: {
+    onFileChange(file) {
+      this.link = file;
+    },
     users() {
-      $.get(
-        "http://localhost:8002/api/user/" +
-          this.username +
-          "/",
-        data => {
-          this.user = data;
-          (this.name = data.first_name),
-            (this.login = this.username),
-            (this.family = data.last_name),
-            (this.email = data.email),
-            (this.link = data.photo);
+      $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
+        this.user = data;
+        (this.name = data.first_name),
+          (this.login = this.username),
+          (this.family = data.last_name),
+          (this.email = data.email);
+           this.link = data.photo;
+      });
+    },
+    updateAvatar() {
+      let formData = new FormData();;
+      formData.append("photo", this.link);
+
+      $.ajax({
+        url: "http://localhost:8002/api/user-avatar/",
+        data: formData,
+        type: "POST",
+        processData: false,
+        contentType: false,
+        success: function(data) {
+          //console.log('done')
+        },
+        error: function(response) {
+          console.log(this.data);
+          let err = response.responseJSON;
+          for (let key in err) {
+            alert(key, err[key].toString());
+          }
         }
-      );
+      });
     },
     updateUser() {
       const login = this.login;
       $.ajax({
-        url:
-          "http://localhost:8002/api/update_profile/" +
-          this.username +
-          "/",
+        url: "http://localhost:8002/api/update_profile/" + this.username + "/",
         data: {
-          first_name: this.name,
           username: this.login,
+          first_name: this.name,
           last_name: this.family,
-          email: this.email,
-          photo: this.link
+          email: this.email
         },
         type: "PUT",
         success: function(data) {
@@ -133,14 +148,17 @@ export default {
             localStorage.removeItem("username");
             localStorage.setItem("username", login);
           }
+          location.reload();
         },
         error: function(response) {
+          console.log(this.data);
           let err = response.responseJSON;
           for (let key in err) {
-            alert(err[key].toString());
+            alert(key, err[key].toString());
           }
         }
       });
+      this.updateAvatar();
     }
   }
 };

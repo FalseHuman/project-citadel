@@ -36,7 +36,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'photo')
+        fields = ('username', 'first_name', 'last_name', 'email')
         lookup_field = 'username'
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
@@ -49,8 +49,17 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         instance.last_name = validated_data['last_name']
         instance.username = validated_data['username']
         instance.email = validated_data['email']
-        instance.photo = validated_data['photo']
 
         instance.save()
 
         return instance
+
+class UserAvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["photo"]
+
+    def save(self, *args, **kwargs):
+        if self.instance.photo:
+            self.instance.photo.delete()
+        return super().save(*args, **kwargs)

@@ -17,12 +17,18 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from tabs.views import UserAvatarUpload
+from django.views.static import serve
 
 urlpatterns = [
-    #path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
+    re_path(r'^media/(?P<path>.*)$', serve, kwargs={'document_root': settings.MEDIA_ROOT}),
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
     path('auth/', include('djoser.urls.jwt')),
-    path("api/",include("tabs.urls"))
-] +static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    path("api/",include("tabs.urls")),
+    path("api/user-avatar/", UserAvatarUpload.as_view(), name="rest_user_avatar_upload"),
+]
 urlpatterns += [re_path(r'^.*', include('start.urls'))]
+'''if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)'''

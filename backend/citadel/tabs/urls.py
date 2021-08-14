@@ -11,5 +11,4 @@ router.register(r'pays', PaysViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path('update_profile/<str:username>/', UpdateProfileView.as_view(), name='auth_update_profile'),
-
 ]

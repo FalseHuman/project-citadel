@@ -5,7 +5,8 @@
 </template>
 
 <script>
-import $ from 'jquery';
+import adapter from "webrtc-adapter";
+import $ from "jquery";
 export default {
   created() {
     if (localStorage.getItem("auth-token")) {
@@ -14,6 +15,19 @@ export default {
           Authorization: "Token " + localStorage.getItem("auth-token")
         }
       });
+    }
+    this.themeBrowser();
+  },
+  methods: {
+    themeBrowser() {
+      console.log(adapter.browserDetails.browser);
+      if (window.matchMedia) {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          console.log("dark")
+        } else {
+          console.log("light")
+        }
+      }
     }
   }
 };
