@@ -53,3 +53,37 @@ class UserAvatarUpload(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasswordView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = ChangePasswordSerializer
+
+    @action(detail=True, methods=['post'])
+    def change_password(self, request, pk=None):
+        """ Код с курса https://stepik.org/lesson/334150/step/5?unit=317559 """
+        def is_password_good(password):
+            count, count1, count2 = 0, 0, 0
+            for i in range(len(password)):
+                if '0' <= password[i] <= '9':
+                    count += 1
+                if 'A' <= password[i] <= 'Z':
+                    count1 += 1
+                if 'a' <= password[i] <= 'z':
+                    count2 += 1
+            return len(password) >= 8 and count >= 1 and count1 >= 1 and count2 >= 1
+        user = User.objects
+        try:
+            username = user.get(username=request.data.get("login"))
+            if request.data.get("password_1") == request.data.get("password_2"):
+                if is_password_good(request.data.get("password_1")) == True:
+                    username.set_password(request.data.get("password_1"))
+                    username.save()
+                else:
+                    return Response({"Введённый пароль слишком короткий. Он должен содержать как минимум 8 символов. Он должен содержать  заглавную букву. Введённый пароль слишком широко распространён. Введённый пароль состоит только из цифр."}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                Response(status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({"Пользователь не существует."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=status.HTTP_200_OK)

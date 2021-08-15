@@ -15,12 +15,11 @@
             <v-card-text class="pt-4">
               <div>
                 <v-form ref="form">
-                  <!--v-model="valid"-->
                   <v-text-field label="Логин" v-model="username" required></v-text-field>
                   <v-text-field label="Пароль" v-model="password" type="password" required></v-text-field>
                   <v-layout justify-space-between>
                     <v-btn  @click="signIn">Войти</v-btn>
-                    <a href="/registraitions">Регистрация</a>
+                    <p><a href="/reset-password">Забыли пароль?</a> <a href="/registraitions">Регистрация</a></p>
                   </v-layout>
                 </v-form>
               </div>

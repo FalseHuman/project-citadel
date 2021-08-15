@@ -4,6 +4,7 @@ import Cash from '../views/Cash.vue'
 import Login from '../components/Login.vue'
 import Profile from '../views/Profile.vue'
 import Register from '../components/Register.vue'
+import Reset from '../components/Reset.vue'
 
 Vue.use(VueRouter)
 
@@ -17,6 +18,11 @@ const routes = [
         path: '/login',
         name: 'Login',
         component: Login
+    },
+    {
+        path: '/reset-password',
+        name: 'Reset',
+        component: Reset
     },
     {
         path: '/profile',
@@ -37,7 +43,7 @@ const router = new VueRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    if (localStorage.getItem('auth-token') !== null || to.path === '/login' || to.path === '/registraitions') {
+    if (localStorage.getItem('auth-token') !== null || to.path === '/login' || to.path === '/registraitions' || to.path === '/reset-password') {
         next()
     } else {
         next('/login')

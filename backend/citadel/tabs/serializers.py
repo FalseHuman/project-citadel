@@ -54,6 +54,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
         return instance
 
+
 class UserAvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -63,3 +64,9 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         if self.instance.photo:
             self.instance.photo.delete()
         return super().save(*args, **kwargs)
+
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username", "password"]
