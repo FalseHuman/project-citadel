@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Cash from '../views/Cash.vue'
+import Notes from '../views/Notes.vue'
 import Login from '../components/Login.vue'
 import Profile from '../views/Profile.vue'
 import Register from '../components/Register.vue'
@@ -13,6 +14,11 @@ const routes = [
         path: '/',
         name: 'Cash',
         component: Cash
+    },
+    {
+        path: '/notes',
+        name: 'Notes',
+        component: Notes
     },
     {
         path: '/login',

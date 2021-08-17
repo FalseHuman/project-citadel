@@ -46,3 +46,9 @@ class Pays(models.Model):
         choices=TYPE_PAYS, verbose_name='Тип платежа')
     month = models.CharField(max_length=255,
         choices=MONTH, verbose_name='Месяц')
+
+class Notes(models.Model):
+    person = models.ForeignKey(
+        User, related_name='notes', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255, blank=True, null=True, verbose_name='Название')
+    body = models.TextField(blank=True, null=True, verbose_name="Текст")

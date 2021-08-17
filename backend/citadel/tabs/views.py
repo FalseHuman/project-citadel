@@ -34,6 +34,35 @@ class PaysViewSet(viewsets.ModelViewSet):
         return Response(status=204)
 
 
+class NotesViewSet(viewsets.ModelViewSet):
+    queryset = Notes.objects.all().order_by('-id')
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = NotesSerializer
+
+    @action(detail=True, methods=['post'])
+    def edit_notes(self, request, pk=None):
+        # print(request.data)
+        try:
+            notes = Notes.objects.get(id=pk)
+            notes.person.username = request.data.get("person_name")
+            notes.title = request.data.get("title")
+            notes.body = request.data.get("body")
+            notes.save()
+        except Notes.DoesNotExist:
+            pass
+
+        return Response(status=204)
+
+    @action(detail=True, methods=['delete'])
+    def delete_notes(self, request, pk=None):
+        try:
+            Notes.objects.get(id=pk).delete()
+        except Notes.DoesNotExist:
+            pass
+
+        return Response(status=204)
+
+
 class UpdateProfileView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]

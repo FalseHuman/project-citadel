@@ -61,6 +61,7 @@ export default {
     drawer: null,
     links: [
       ["mdi-cash", "/", "Расходы/Доходы"],
+      ["mdi-pen", "/notes", "Заметки"],
       ["mdi-account-cog", "/profile", "Настройки профиля"]
     ],
     mini: true,

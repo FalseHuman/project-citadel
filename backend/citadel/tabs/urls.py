@@ -6,6 +6,7 @@ router = routers.SimpleRouter()
 
 router.register(r'user', UserViewSet)
 router.register(r'pays', PaysViewSet)
+router.register(r'notes', NotesViewSet)
 router.register(r'password', ChangePasswordView)
 
 # URLs настраиваются автоматически роутером

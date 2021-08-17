@@ -26,7 +26,7 @@
                 style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
                 title="Обновить"
               >
-                <v-icon dark @click="userpays">mdi-refresh</v-icon>
+                <v-icon dark>mdi-refresh</v-icon>
               </v-btn>
             </template>
             <v-card>

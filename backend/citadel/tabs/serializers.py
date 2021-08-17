@@ -2,6 +2,20 @@ from rest_framework import serializers
 from .models import *
 
 
+class NotesSerializer(serializers.ModelSerializer):
+    person_name = serializers.CharField(source='person.username')
+
+    class Meta:
+        model = Notes
+        fields = ('id', 'title', 'body', 'person_name')
+
+    def create(self, validated_data):
+        person = validated_data['person']
+        validated_data['person'] = User.objects.get(
+            username=person['username'])
+        return Notes.objects.create(**validated_data)
+
+
 class PaysSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.username')
 
@@ -19,12 +33,13 @@ class PaysSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     pays = PaysSerializer(many=True, read_only=True)
+    notes = NotesSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         depth = 1
         fields = ('username', 'photo', 'first_name',
-                  'last_name', 'email', 'photo', 'pays')
+                  'last_name', 'email', 'photo', 'pays', 'notes')
         lookup_field = 'username'
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
