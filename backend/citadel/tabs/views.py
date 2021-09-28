@@ -12,6 +12,7 @@ from .models import *
 from .serializers import *
 
 
+
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, ]
     queryset = User.objects.all()
@@ -83,6 +84,20 @@ class UserAvatarUpload(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class TempalatesViewSet(APIView):
+    queryset = Templates.objects.all()
+    permission_classes = [permissions.IsAuthenticated, ]
+    serializer_class = TemplatesSerializer
+
+    def post(self, request, format=None):
+        print(request.data)
+        serializer = TemplatesSerializer(
+            data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePasswordView(viewsets.ModelViewSet):
     queryset = User.objects.all()

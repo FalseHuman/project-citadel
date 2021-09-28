@@ -5,3 +5,4 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Pays)
 admin.site.register(Notes)
+admin.site.register(Templates)

@@ -25,6 +25,7 @@
                 fab
                 style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
                 title="Обновить"
+                @click="userNotes"
               >
                 <v-icon dark>mdi-refresh</v-icon>
               </v-btn>

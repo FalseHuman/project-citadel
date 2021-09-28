@@ -55,6 +55,31 @@
                         <v-col cols="12" sm="6" md="6">
                           <v-text-field label="Фамилия*" v-model="family" required clearable></v-text-field>
                         </v-col>
+                        <v-col cols="12" sm="10" md="10">
+                          <v-radio-group v-model="row" row>
+                            <template v-slot:label>
+                              <div>
+                                Вы согласны получать копию расходов/доходов на
+                                <strong>е-mail</strong>?
+                              </div>
+                            </template>
+                            <v-radio value="true">
+                              <template v-slot:label>
+                                <div>
+                                  <strong class="success--text">Да</strong>
+                                </div>
+                              </template>
+                            </v-radio>
+                            <v-radio value="false">
+                              <template v-slot:label>
+                                <div>
+                                  <strong class="error--text">Нет</strong>
+                                </div>
+                              </template>
+                            </v-radio>
+                          </v-radio-group>
+
+                        </v-col>
                       </v-row>
                     </v-container>
                     <small>*Обязательные поля</small>
@@ -89,7 +114,8 @@ export default {
       login: "",
       email: "",
       name: "",
-      family: ""
+      family: "",
+      row: ""
     };
   },
   created() {
@@ -107,11 +133,12 @@ export default {
           (this.login = this.username),
           (this.family = data.last_name),
           (this.email = data.email);
-           this.link = data.photo;
+        this.link = data.photo;
+        this.row = data.email_send.toString();
       });
     },
     updateAvatar() {
-      let formData = new FormData();;
+      let formData = new FormData();
       formData.append("photo", this.link);
 
       $.ajax({
@@ -134,13 +161,15 @@ export default {
     },
     updateUser() {
       const login = this.login;
+      console.log(this.row)
       $.ajax({
         url: "http://localhost:8002/api/update_profile/" + this.username + "/",
         data: {
           username: this.login,
           first_name: this.name,
           last_name: this.family,
-          email: this.email
+          email: this.email,
+          email_send: this.row,
         },
         type: "PUT",
         success: function(data) {

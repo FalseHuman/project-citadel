@@ -25,6 +25,7 @@
                 fab
                 style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
                 title="Обновить"
+                @click="userpays"
               >
                 <v-icon dark>mdi-refresh</v-icon>
               </v-btn>
@@ -63,6 +64,22 @@
                         required
                       ></v-select>
                     </v-col>
+                    <v-col cols="12" sm="8" md="8">
+                      <v-select
+                        :items="templates_title"
+                        v-model="title_for_index"
+                        label="Вставить данные из шаблона"
+                        required
+                      ></v-select>
+                    </v-col>
+                    <v-col>
+                      <v-btn
+                        color="blue darken-1"
+                        text
+                        @click="templatesPaste"
+                        style="margin-top: 15px;"
+                      >Вставить</v-btn>
+                    </v-col>
                   </v-row>
                 </v-container>
                 <small>*Обязательные поля</small>
@@ -82,7 +99,25 @@
           <v-col v-for="month in months" :key="month" cols="12" v-show="monthes(month, pays) !== 0">
             <v-card>
               <v-subheader>{{ month }} - {{ monthsPays(month, year) }}</v-subheader>
+              <!--<v-tabs>
+                <v-tab>Список</v-tab>
+                <v-tab>График</v-tab>
+              </v-tabs>
 
+              <v-card-text>
+                <v-sheet color="rgba(0, 0, 0, .12)">
+                  <v-sparkline
+                    :value="value"
+                    color="rgba(255, 255, 255, .7)"
+                    height="100"
+                    padding="24"
+                    stroke-linecap="round"
+                    smooth
+                  >
+                    <template v-slot:label="item">${{ item.value }}</template>
+                  </v-sparkline>
+                </v-sheet>
+              </v-card-text>-->
               <v-list two-line>
                 <template v-for="n in pays">
                   <v-list-item :key="n.id" v-if="n.month === month && year === yearDate(n.data)">
@@ -95,9 +130,9 @@
                     <v-list-item-content>
                       <v-list-item-title>{{ n.title }}</v-list-item-title>
 
-                      <v-list-item-subtitle>{{n.cost}} руб., {{formatDate(n.data)}}</v-list-item-subtitle>
+                      <v-list-item-subtitle class="xs">{{n.cost}} руб., {{formatDate(n.data)}}</v-list-item-subtitle>
                     </v-list-item-content>
-                    <v-col cols="auto">
+                    <v-col cols="auto" class="xs">
                       <v-dialog transition="dialog-bottom-transition" max-width="600">
                         <template v-slot:activator="{ on, attrs }">
                           <v-btn color="primary" v-bind="attrs" v-on="on">
@@ -118,6 +153,7 @@
                               <div class="text-h5 pa-5">Дата платежа: {{formatDate(n.data)}}</div>
                             </v-card-text>
                             <v-card-actions class="justify-end">
+                              <v-btn text @click="templatesSend(n)">Добавить в шаблон</v-btn>
                               <v-btn text @click="dialog.value = false">Закрыть</v-btn>
                             </v-card-actions>
                           </v-card>
@@ -161,6 +197,7 @@ export default {
       "Февраль",
       "Январь"
     ],
+    value: [],
     months_pays: [],
     dialog: false,
     pays: [],
@@ -170,7 +207,10 @@ export default {
     cost: "",
     type_of_pays: "",
     data: "",
-    month: ""
+    month: "",
+    templates: [],
+    templates_title: [],
+    title_for_index: ''
   }),
   created() {
     this.username = localStorage.getItem("username");
@@ -181,7 +221,10 @@ export default {
     userpays() {
       $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
         this.pays = data.pays;
-        //this.monthes(data.pays)
+        this.templates = data.templates;
+        for(let i=0; i< this.templates.length; i++){
+          this.templates_title.push(this.templates[i].body_template.title)
+        }
         let year = [];
         for (let i = 0; i < this.pays.length; i++) {
           year.push(this.yearDate(this.pays[i].data));
@@ -215,7 +258,6 @@ export default {
       let sum = 0;
       let minussum = 0;
       for (let i = 0; i < this.pays.length; i++) {
-        //console.log('pays', Number(this.pays[i].cost))
         let num = Number(this.pays[i].cost);
         if (
           this.pays[i].month === month &&
@@ -234,6 +276,9 @@ export default {
         " руб. " +
         "Получено: " +
         sum.toString() +
+        " руб." +
+        " Итог: " +
+        String(sum - Math.abs(minussum)) +
         " руб."
       );
     },
@@ -255,6 +300,34 @@ export default {
       this.dialog = false;
 
       setTimeout(this.userpays, 1500);
+    },
+    templatesPaste(){
+      let obj = this.templates[this.templates_title.indexOf(this.title_for_index)].body_template
+
+      for(let key in obj){
+        console.log(key)
+        this.[key] = obj[key]
+      }
+    },
+    templatesSend(dict) {
+      let body = {
+        title: dict.title,
+        body: dict.body,
+        cost: dict.cost,
+        type_of_pays: dict.type_of_pays
+      };
+      const templatesData = {
+        person: dict.author_name,
+        body_template: JSON.stringify(body)
+      };
+      console.log(templatesData);
+      $.post(
+        "http://localhost:8002/api/templates/",
+        templatesData,
+        data => {}
+      ).fail(response => {
+        alert(response.responseText);
+      });
     },
     formatDate(date) {
       const options = {

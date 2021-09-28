@@ -1,5 +1,22 @@
+from re import template
 from rest_framework import serializers
+
 from .models import *
+
+class TemplatesSerializer(serializers.ModelSerializer):
+    person = serializers.CharField(source='person.username')
+    class Meta:
+        model = Templates
+        fields = ['person', 'body_template']
+
+    def create(self, validated_data):
+        #print(request.user)
+        print(validated_data)
+        person = validated_data['person']
+        validated_data['person'] = User.objects.get(
+            username=person['username'])
+
+        return Templates.objects.create(**validated_data)
 
 
 class NotesSerializer(serializers.ModelSerializer):
@@ -34,12 +51,13 @@ class PaysSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     pays = PaysSerializer(many=True, read_only=True)
     notes = NotesSerializer(many=True, read_only=True)
+    templates = TemplatesSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
         depth = 1
         fields = ('username', 'photo', 'first_name',
-                  'last_name', 'email', 'photo', 'pays', 'notes')
+                  'last_name', 'email', 'photo', 'email_send', 'pays', 'notes', 'templates')
         lookup_field = 'username'
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
@@ -51,7 +69,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
+        fields = ('username', 'first_name', 'last_name', 'email_send', 'email')
         lookup_field = 'username'
         extra_kwargs = {
             'url': {'lookup_field': 'username'},
@@ -60,13 +78,17 @@ class UpdateUserSerializer(serializers.ModelSerializer):
         }
 
     def update(self, instance, validated_data):
-        instance.first_name = validated_data['first_name']
-        instance.last_name = validated_data['last_name']
-        instance.username = validated_data['username']
-        instance.email = validated_data['email']
-
+        if 'email' in validated_data:
+            try:
+                user_email = User.objects.get(email=validated_data['email'])
+                
+                if user_email.username != validated_data['username']:
+                    raise serializers.ValidationError({'email': 'Этот email уже используется'})
+            except User.DoesNotExist:
+                pass
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
         instance.save()
-
         return instance
 
 
@@ -79,6 +101,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
         if self.instance.photo:
             self.instance.photo.delete()
         return super().save(*args, **kwargs)
+
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
