@@ -1,5 +1,9 @@
  <template>
   <v-main>
+    <div v-if="load === true">
+      <loading />
+    </div>
+    <div v-else>
     <NavAndFooter />
     <v-card class="mx-auto" max-width="100%" tile>
       <v-col>
@@ -96,18 +100,21 @@
         </v-list-item-content>
       </v-list-item>
     </v-card>
+    </div>
   </v-main>
 </template>
 <script>
 import $ from "jquery";
 import NavAndFooter from "../components/NavAndFooter";
+import Loading from "../components/Loading";
 export default {
-  components: { NavAndFooter },
+  components: { NavAndFooter, Loading },
   metaInfo: {
     title: "Профиль - Цитадель"
   },
   data() {
     return {
+      load: null,
       user: [],
       dialog: false,
       link: "",
@@ -127,14 +134,16 @@ export default {
       this.link = file;
     },
     users() {
+      this.load = true
       $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
         this.user = data;
         (this.name = data.first_name),
           (this.login = this.username),
           (this.family = data.last_name),
           (this.email = data.email);
-        this.link = data.photo;
+        //this.link = data.photo;
         this.row = data.email_send.toString();
+        this.load = false
       });
     },
     updateAvatar() {
@@ -187,7 +196,9 @@ export default {
           }
         }
       });
+      if (this.link !== ""){
       this.updateAvatar();
+      }
     }
   }
 };

@@ -1,5 +1,9 @@
 <template>
   <v-main>
+    <div v-if="load === true">
+      <loading />
+    </div>
+    <div v-else>
     <NavAndFooter />
     <v-container class="py-8 px-6" fluid>
       <div>
@@ -67,8 +71,6 @@
 
                   <v-list-item-content>
                     <v-list-item-title>{{ n.title }}</v-list-item-title>
-
-                    <v-list-item-subtitle v-html="n.body"></v-list-item-subtitle>
                   </v-list-item-content>
                   <v-col cols="auto">
                     <v-dialog transition="dialog-bottom-transition" max-width="600">
@@ -88,7 +90,7 @@
                           <v-container>
                             <v-row>
                               <v-col cols="12">
-                                <v-text-field label="Название" v-model="n.title" required></v-text-field>
+                                <v-text-field label="Название" v-model="n.title"></v-text-field>
                               </v-col>
                               <v-col cols="12">
                                 <ckeditor :editor="editor" v-model="n.body" :config="editorConfig"></ckeditor>
@@ -111,15 +113,18 @@
         </v-col>
       </v-row>
     </v-container>
+    </div>
   </v-main>
 </template>
 
 <script>
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import '@ckeditor/ckeditor5-build-classic/build/translations/ru'
 import $ from "jquery";
 import NavAndFooter from "../components/NavAndFooter";
+import Loading from "../components/Loading";
 export default {
-  components: { NavAndFooter },
+  components: { NavAndFooter, Loading },
   metaInfo: {
     title: "Заметки - Цитадель"
   },
@@ -127,8 +132,9 @@ export default {
   data: () => ({
     editor: ClassicEditor,
     editorConfig: {
-      // The configuration of the rich-text editor.
+      language: 'ru',
     },
+    load: null,
     dialog: false,
     notes: [],
     person_name: "",
@@ -141,9 +147,19 @@ export default {
   },
   methods: {
     userNotes() {
+      this.load = true
       $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
         this.notes = data.notes;
+        let link = this.notes[0].body
+        this.load = false
       });
+    },
+    findLink(body){
+        let link = body
+        link = link.match(/(https?:\/\/[^\s]+)/g)
+        if (String(link)){
+          return '<a href="' +link + '">'+ 'Перейти по ссылке' + '</a>'
+        }
     },
     notesSend() {
       const notesData = {
@@ -151,6 +167,7 @@ export default {
         title: this.title,
         body: this.body
       };
+      console.log(notesData)
       $.post("http://localhost:8002/api/notes/", notesData, data => {}).fail(
         response => {
           alert(response.responseText);
