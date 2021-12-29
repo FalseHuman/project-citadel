@@ -7,9 +7,7 @@
 .centered {
   margin: 1rem;
   position: fixed; /* or absolute */
-  top: 40%;
-  left: 45%;
-  width: 200px; 
-  height:100px;
+  top: 45%;
+  left: 50%;
 }
 </style>

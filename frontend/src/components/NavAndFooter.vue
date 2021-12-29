@@ -4,14 +4,17 @@
       <p style="text-align: center; margin: 0;">
         <v-sheet color="light" class="pa-4">
           <div v-if="mini===false">
-            <v-avatar class="mb-4" color="grey darken-1" size="64">
+            <v-avatar v-if="user.photo !== null" class="mb-4" color="grey darken-1" size="64">
               <img :src="`${user.photo}`" />
+            </v-avatar>
+            <v-avatar v-else class="mb-4" color="grey darken-1" size="64">
+              <img src />
             </v-avatar>
 
             <div
               v-if="user.first_name === '' && user.last_name === ''"
               class="mb-2"
-            >{{username}} ({{user.email}})</div>
+            >{{user.username}} ({{user.email}})</div>
             <div v-else class="mb-2">{{user.first_name}} {{user.last_name}}</div>
             <v-btn color="primary" @click="logout" class="button-nav" title="Выход">
               <v-icon>mdi-exit-run</v-icon>
@@ -29,8 +32,11 @@
             </v-btn>
           </div>
           <div v-else style="margin-left: -10px;">
-            <v-avatar color="grey darken-1" size="44">
+            <v-avatar v-if="user.photo !== null" color="grey darken-1" size="44">
               <img :src="`${user.photo}`" />
+            </v-avatar>
+            <v-avatar v-else color="grey darken-1" size="44">
+              <img src />
             </v-avatar>
           </div>
         </v-sheet>
@@ -68,25 +74,20 @@ export default {
     user: []
   }),
   created() {
-    this.username = localStorage.getItem("username");
+    //this.username = localStorage.getItem("username");
     this.token = localStorage.getItem("auth-token");
     $.ajaxSetup({
       headers: {
         Authorization: `Token ${localStorage.getItem("auth-token")}`
       }
-    })
-      this.userinfo();
+    });
+    this.userinfo();
   },
   methods: {
     userinfo() {
-      $.get(
-        "http://localhost:8002/api/user/" +
-          this.username +
-          "/",
-        data => {
-          this.user = data;
-        }
-      );
+      $.get("http://localhost:8002/api/user/", data => {
+        this.user = data[0];
+      });
     },
     logout() {
       $.post(

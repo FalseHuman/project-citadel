@@ -148,6 +148,8 @@ USE_L10N = True
 
 USE_TZ = False
 
+VK_CLIENT_ID = '8035574'
+VK_SECRET = 'JmPYb9dI62HpmOECvHnI'
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',

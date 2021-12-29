@@ -1,29 +1,56 @@
+import re
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
 from rest_framework import status
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.http import HttpResponseRedirect
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from .service import vk
+from rest_framework.decorators import api_view
 from .models import *
 from .serializers import *
 
+class TokenGet(APIView):
+    def post(self, request, format=None):
+        try:
+            Token.objects.get(key=request.data['auth-token'])
+            return Response({"token": "exists"}, status=status.HTTP_200_OK)
+        except Token.DoesNotExist:
+            return Response({"token": "not exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class VK_Auth(APIView):
+    permission_classes = [permissions.AllowAny, ]
+    def get(self, request, format=None):
+        token = vk.vk_auth(request.query_params.get('code')) 
+        res = HttpResponseRedirect('http://localhost:8080/login')
+        res.set_cookie(key="auth_token", value=token)
+        return res
 
 
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, ]
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    lookup_field = 'username'
+
+    def get_queryset(self):
+        #print('user', self.request.user)
+        return User.objects.filter(username=self.request.user)
 
 
 class PaysViewSet(viewsets.ModelViewSet):
     queryset = Pays.objects.all().order_by('-id')
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = PaysSerializer
+
+    def get_queryset(self):
+        return self.request.user.pays.all()
 
     @action(detail=True, methods=['delete'])
     def delete_pays(self, request, pk=None):
@@ -40,12 +67,14 @@ class NotesViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = NotesSerializer
 
+    def get_queryset(self):
+        return self.request.user.notes.all()
+
     @action(detail=True, methods=['post'])
     def edit_notes(self, request, pk=None):
-        # print(request.data)
         try:
             notes = Notes.objects.get(id=pk)
-            notes.person.username = request.data.get("person_name")
+            notes.person.username = request.user
             notes.title = request.data.get("title")
             notes.body = request.data.get("body")
             notes.save()
@@ -68,7 +97,15 @@ class UpdateProfileView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = UpdateUserSerializer
-    lookup_field = 'username'
+    
+    def put(self, request, format=None):
+        serializer = UpdateUserSerializer(
+            data=request.data, instance=request.user)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserAvatarUpload(APIView):
@@ -84,13 +121,17 @@ class UserAvatarUpload(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class TempalatesViewSet(APIView):
+class TempalatesViewSet(viewsets.ModelViewSet):
     queryset = Templates.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = TemplatesSerializer
 
+    def get_queryset(self):
+        return self.request.user.templates.all()
+    
+
     def post(self, request, format=None):
-        print(request.data)
+        #print(request.data)
         serializer = TemplatesSerializer(
             data=request.data)
         if serializer.is_valid():

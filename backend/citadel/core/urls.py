@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from tabs.views import UserAvatarUpload
+from tabs.views import UserAvatarUpload, VK_Auth
 from django.views.static import serve
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls.jwt')),
     path("api/",include("tabs.urls")),
     path("api/user-avatar/", UserAvatarUpload.as_view(), name="rest_user_avatar_upload"),
+    path('vk-callback', VK_Auth.as_view(), name="vk"),
 ]
 urlpatterns += [re_path(r'^.*', include('start.urls'))]
 '''if settings.DEBUG:

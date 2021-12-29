@@ -17,18 +17,35 @@ export default {
       });
     }
     this.themeBrowser();
+    this.tokenGet();
   },
   methods: {
     themeBrowser() {
-      console.log(adapter.browserDetails.browser);
+      //console.log(adapter.browserDetails.browser);
       if (window.matchMedia) {
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          console.log("dark")
-        } else {
-          console.log("light")
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches && localStorage.getItem('theme') !== 'true') {
+          localStorage.setItem('theme', true)
+        } else if (localStorage.getItem('theme') !== 'true') {
+          localStorage.removeItem('theme')
         }
       }
+    },
+    tokenGet(){
+        $.post("http://localhost:8002/api/token/", {'auth-token': localStorage.getItem("auth-token")}, data => {}).fail(
+        response => {
+           if (localStorage.getItem('auth-token')){
+              localStorage.removeItem('auth-token')
+              this.$router.push("/login");
+            }
+        }
+      );
     }
   }
 };
 </script>
+ <style>
+.ck.ck-editor__main>.ck-editor__editable {
+  background: none !important;
+  border-radius: 0;
+}
+ </style>

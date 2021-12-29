@@ -15,7 +15,7 @@
       </v-col>
       <v-list-item color="rgba(0, 0, 0, .4)">
         <v-list-item-content justify="center">
-          <v-list-item-title class="title" style="text-align: center;">Логин: {{username}}</v-list-item-title>
+          <v-list-item-title class="title" style="text-align: center;">Логин: {{user.username}}</v-list-item-title>
           <v-list-item-title class="title" style="text-align: center;">Имя: {{user.first_name}}</v-list-item-title>
           <v-list-item-title class="title" style="text-align: center;">Фамилия: {{user.last_name}}</v-list-item-title>
           <v-list-item-title class="title" style="text-align: center;">Почта: {{user.email}}</v-list-item-title>
@@ -46,8 +46,6 @@
                             v-model="login"
                             required
                             clearable
-                            :value="username"
-                            @change="username = $event"
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6" md="6">
@@ -126,7 +124,6 @@ export default {
     };
   },
   created() {
-    this.username = localStorage.getItem("username");
     this.users();
   },
   methods: {
@@ -135,14 +132,16 @@ export default {
     },
     users() {
       this.load = true
-      $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
-        this.user = data;
-        (this.name = data.first_name),
-          (this.login = this.username),
-          (this.family = data.last_name),
-          (this.email = data.email);
+      $.get("http://localhost:8002/api/user/", data => {
+        //console.log(data)
+        //console.log(document.cookie)
+        this.user = data[0];
+        (this.name = this.user.first_name),
+          (this.login = this.user.username),
+          (this.family = this.user.last_name),
+          (this.email = this.user.email);
         //this.link = data.photo;
-        this.row = data.email_send.toString();
+        this.row = this.user.email_send.toString();
         this.load = false
       });
     },
@@ -157,10 +156,10 @@ export default {
         processData: false,
         contentType: false,
         success: function(data) {
-          //console.log('done')
+          ////console.log('done')
         },
         error: function(response) {
-          console.log(this.data);
+          //console.log(this.data);
           let err = response.responseJSON;
           for (let key in err) {
             alert(key, err[key].toString());
@@ -169,10 +168,9 @@ export default {
       });
     },
     updateUser() {
-      const login = this.login;
-      console.log(this.row)
+      //console.log(this.row)
       $.ajax({
-        url: "http://localhost:8002/api/update_profile/" + this.username + "/",
+        url: "http://localhost:8002/api/update_profile/",
         data: {
           username: this.login,
           first_name: this.name,
@@ -182,14 +180,10 @@ export default {
         },
         type: "PUT",
         success: function(data) {
-          if (localStorage.getItem("username") !== login) {
-            localStorage.removeItem("username");
-            localStorage.setItem("username", login);
-          }
-          location.reload();
+          location.reload()
         },
         error: function(response) {
-          console.log(this.data);
+          //console.log(this.data);
           let err = response.responseJSON;
           for (let key in err) {
             alert(key, err[key].toString());
@@ -197,7 +191,7 @@ export default {
         }
       });
       if (this.link !== ""){
-      this.updateAvatar();
+         this.updateAvatar();
       }
     }
   }

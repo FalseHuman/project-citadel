@@ -93,7 +93,7 @@
                                 <v-text-field label="Название" v-model="n.title"></v-text-field>
                               </v-col>
                               <v-col cols="12">
-                                <ckeditor :editor="editor" v-model="n.body" :config="editorConfig"></ckeditor>
+                                <ckeditor :editor="editor" v-model="n.body" :config="editorConfig" style="backround: red;"></ckeditor>
                               </v-col>
                             </v-row>
                           </v-container>
@@ -142,15 +142,15 @@ export default {
     body: ""
   }),
   created() {
-    this.username = localStorage.getItem("username");
     this.userNotes();
   },
   methods: {
     userNotes() {
       this.load = true
-      $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
-        this.notes = data.notes;
-        let link = this.notes[0].body
+      $.get("http://localhost:8002/api/notes/", data => {
+        //console.log(data)
+        this.notes = data;
+        //let link = this.notes[0].body
         this.load = false
       });
     },
@@ -163,11 +163,10 @@ export default {
     },
     notesSend() {
       const notesData = {
-        person_name: localStorage.getItem("username"),
         title: this.title,
         body: this.body
       };
-      console.log(notesData)
+      //console.log(notesData)
       $.post("http://localhost:8002/api/notes/", notesData, data => {}).fail(
         response => {
           alert(response.responseText);
@@ -193,7 +192,6 @@ export default {
     editNotes(id, title, body) {
       const notesData = {
         id: id,
-        person_name: localStorage.getItem("username"),
         title: title,
         body: body
       };

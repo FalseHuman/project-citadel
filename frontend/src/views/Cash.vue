@@ -16,6 +16,7 @@
                   small
                   fab
                   v-bind="attrs"
+                  @click="template_pays()"
                   v-on="on"
                   style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
                   title="Добавить"
@@ -68,22 +69,7 @@
                           required
                         ></v-select>
                       </v-col>
-                      <v-col cols="12" sm="8" md="8">
-                        <v-select
-                          :items="templates_title"
-                          v-model="title_for_index"
-                          label="Вставить данные из шаблона"
-                          required
-                        ></v-select>
-                      </v-col>
-                      <v-col>
-                        <v-btn
-                          color="blue darken-1"
-                          text
-                          @click="templatesPaste"
-                          style="margin-top: 15px;"
-                        >Вставить</v-btn>
-                      </v-col>
+                      <templates :temp="templates_title" @changeData="changeData" />
                     </v-row>
                   </v-container>
                   <small>*Обязательные поля</small>
@@ -184,9 +170,10 @@
 <script>
 import $ from "jquery";
 import NavAndFooter from "../components/NavAndFooter";
-import Loading from "../components/Loading"
+import Templates from "../components/Templates";
+import Loading from "../components/Loading";
 export default {
-  components: { NavAndFooter, Loading },
+  components: { NavAndFooter, Loading, Templates },
   metaInfo: {
     title: "Расходы/Доходы - Цитадель"
   },
@@ -221,31 +208,42 @@ export default {
     data: "",
     month: "",
     templates: [],
-    templates_title: [],
-    title_for_index: ''
+    templates_title: []
   }),
   created() {
-    this.username = localStorage.getItem("username");
     this.userpays();
     this.monthes();
   },
   methods: {
-    userpays() {
-      this.load = true
-      $.get("http://localhost:8002/api/user/" + this.username + "/", data => {
-        
-        this.pays = data.pays;
-        this.templates = data.templates;
-        for(let i=0; i< this.templates.length; i++){
-          this.templates_title.push(this.templates[i].body_template.title)
+    template_pays() {
+      $.get("http://localhost:8002/api/templates/", data => {
+        //console.log(data);
+        this.templates = data;
+        for (let i = 0; i < this.templates.length; i++) {
+          this.templates_title.push(this.templates[i].body_template.title);
         }
+      });
+    },
+    userpays() {
+      this.load = true;
+      $.get("http://localhost:8002/api/pays/", data => {
+        document.cookie = 'auth_token=; max-age=-1'
+        this.pays = data;
         let year = [];
         for (let i = 0; i < this.pays.length; i++) {
           year.push(this.yearDate(this.pays[i].data));
         }
         this.years = Array.from(new Set(year));
-        this.load = false
+        /*Костыль придумать решение*/ 
+        this.title = "",
+        this.body = "",
+        this.cost = "",
+        this.type_of_pays ="",
+        this.load = false;
       });
+    },
+    changeData(value) {
+      this.templatesPaste(value);
     },
     deletePays(id) {
       $.ajax({
@@ -297,10 +295,9 @@ export default {
         " руб."
       ); /* TODO */
     },
-    paysSend() {
+    paysSend(dict) {
       let month = new Date().toLocaleString("ru", { month: "long" });
       const payData = {
-        author_name: localStorage.getItem("username"),
         title: this.title,
         body: this.body,
         type_of_pays: this.type_of_pays.toLowerCase(),
@@ -316,12 +313,13 @@ export default {
 
       setTimeout(this.userpays, 1500);
     },
-    templatesPaste(){
-      let obj = this.templates[this.templates_title.indexOf(this.title_for_index)].body_template
+    templatesPaste(value) {
+      let obj = this.templates[this.templates_title.indexOf(value)]
+        .body_template;
 
-      for(let key in obj){
-        console.log(key)
-        this.[key] = obj[key]
+      for (let key in obj) {
+        ////console.log(key);
+        this[key] = obj[key];
       }
     },
     templatesSend(dict) {
@@ -332,10 +330,9 @@ export default {
         type_of_pays: dict.type_of_pays
       };
       const templatesData = {
-        person: dict.author_name,
         body_template: JSON.stringify(body)
       };
-      console.log(templatesData);
+      //console.log(templatesData);
       $.post(
         "http://localhost:8002/api/templates/",
         templatesData,
