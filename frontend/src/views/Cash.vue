@@ -90,10 +90,10 @@
               v-for="month in months"
               :key="month"
               cols="12"
-              v-show="monthes(month, pays) !== 0"
+              v-show="monthes(month, pays) !== 0  && (monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0)"
             >
-              <v-card>
-                <v-subheader>{{ month }} - {{ monthsPays(month, year) }}</v-subheader>
+              <v-card v-if="monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0">
+               <v-subheader>{{month}} - Потрачено: {{monthsPays(month, year)[1]}} руб. Получено: {{monthsPays(month, year)[0]}} руб. Итог: {{monthsPays(month, year)[0] - Math.abs(monthsPays(month, year)[1])}} руб.</v-subheader>
                 <!--<v-tabs>
                 <v-tab>Список</v-tab>
                 <v-tab>График</v-tab>
@@ -115,7 +115,8 @@
                 </v-card-text>-->
                 <v-list two-line>
                   <template v-for="n in pays">
-                    <v-list-item :key="n.id" v-if="n.month === month && year === yearDate(n.data)">
+                    <div :key="n.id">
+                    <v-list-item v-if="month === n.month && year === yearDate(n.data)">
                       <v-list-item-icon>
                         <v-icon v-if="n.type_of_pays=='наличные'">mdi-cash</v-icon>
                         <v-icon v-else-if="n.type_of_pays=='карта'">mdi-credit-card</v-icon>
@@ -155,7 +156,8 @@
                           </template>
                         </v-dialog>
                       </v-col>
-                    </v-list-item>
+                      </v-list-item>
+                    </div>
                   </template>
                 </v-list>
               </v-card>
@@ -231,7 +233,7 @@ export default {
         this.pays = data;
         let year = [];
         for (let i = 0; i < this.pays.length; i++) {
-          year.push(this.yearDate(this.pays[i].data));
+          year.unshift(this.yearDate(this.pays[i].data));
         }
         this.years = Array.from(new Set(year));
         /*Костыль придумать решение*/ 
@@ -258,7 +260,7 @@ export default {
       });
       this.userpays();
     },
-    monthes(mon, array) {
+    monthes(mon, array, year) {
       let count = 0;
       for (let i = 0; i < array.length; i++) {
         if (array[i].month === mon) {
@@ -283,7 +285,7 @@ export default {
           }
         }
       }
-      return (
+      return [sum, minussum] /*(
         "Потрачено: " +
         minussum.toString() +
         " руб. " +
@@ -348,6 +350,13 @@ export default {
         day: "numeric",
         hour: "numeric",
         minute: "numeric"
+      };
+      return new Date(date).toLocaleDateString("ru", options);
+    },
+    monthString(date) {
+      const options = {
+        month: "long",
+
       };
       return new Date(date).toLocaleDateString("ru", options);
     },

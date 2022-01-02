@@ -24,7 +24,7 @@
                   <v-layout justify-space-between>
                     <v-btn @click="signIn">Войти</v-btn>
                     <p>
-                      <a href="/reset-password">Забыли пароль?</a>
+                      <!--<a href="/reset-password">Забыли пароль?</a>-->
                       <a href="/registraitions">Регистрация</a>
                     </p>
                   </v-layout>

@@ -29,7 +29,7 @@ class VK_Auth(APIView):
     permission_classes = [permissions.AllowAny, ]
     def get(self, request, format=None):
         token = vk.vk_auth(request.query_params.get('code')) 
-        res = HttpResponseRedirect('http://localhost:8080/login')
+        res = HttpResponseRedirect('/')
         res.set_cookie(key="auth_token", value=token)
         return res
 
