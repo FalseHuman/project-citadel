@@ -41,6 +41,10 @@ const routes = [
         component: Register
 
     },
+    {
+        path: '/admin',
+        redirect: 'admin/'
+    }
 ]
 
 const router = new VueRouter({

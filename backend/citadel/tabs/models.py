@@ -13,6 +13,10 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
+class TokenReset(models.Model):
+    token_for_user = models.ForeignKey(
+        User, related_name='token', on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, verbose_name="Token")
 
 class Pays(models.Model):
     TYPE_PAYS = (

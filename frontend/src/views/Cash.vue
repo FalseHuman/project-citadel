@@ -8,7 +8,12 @@
       <v-container class="py-8 px-6" fluid>
         <div>
           <v-row justify="center">
-            <v-dialog v-model="dialog" persistent max-width="600px">
+            <v-dialog
+              v-model="dialog"
+              persistent
+              max-width="600px"
+              :fullscreen="$vuetify.breakpoint.mobile"
+            >
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
                   color="primary"
@@ -16,7 +21,7 @@
                   small
                   fab
                   v-bind="attrs"
-                  @click="template_pays()"
+                  @click="createPays()"
                   v-on="on"
                   style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
                   title="Добавить"
@@ -36,43 +41,56 @@
                 </v-btn>
               </template>
               <v-card>
+                <v-banner single-line v-if="error!==''">
+                  <v-icon slot="icon" color="red" size="36">mdi-comment-alert</v-icon>Заполните все поля!
+                  <template v-slot:actions>
+                    <v-btn color="primary" text @click="error=''">Закрыть</v-btn>
+                  </template>
+                </v-banner>
                 <v-card-title>
                   <span class="text-h5">Добавить платеж</span>
                 </v-card-title>
                 <v-card-text>
                   <v-container>
                     <v-row>
-                      <v-col cols="12">
-                        <v-text-field
-                          label="Назначение платежа*"
-                          hint="Например, 'На молоко'"
-                          v-model="title"
-                          required
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12">
-                        <v-text-field v-model="body" label="Описание платежа"></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <v-text-field
-                          label="Сумма списания/пополнения*"
-                          v-model="cost"
-                          hint="Например, '200' для пополнения и '-200' для списания"
-                          required
-                        ></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <v-select
-                          :items="['Карта','Наличные']"
-                          v-model="type_of_pays"
-                          label="Тип платежа:*"
-                          required
-                        ></v-select>
-                      </v-col>
+                      <!--<p v-for="i in createData">{{i}}</p>-->
+                      <formfield
+                        v-for="i in Object.keys(createData)"
+                        type_input="input"
+                        :key_label="i"
+                        :labels="createData[i].label"
+                        :error="error"
+                        @changeInput="changeInput"
+                        :model="template_form[i]"
+                        :cols="12"
+                        v-show="i =='title' || i =='body'"
+                      />
+                      <formfield
+                        type_input="input"
+                        key_label="cost"
+                        :labels="createData.cost.label"
+                        @changeInput="changeInput"
+                        :error="error"
+                        :cols="10"
+                        :model="template_form.cost"
+                        :sm="6"
+                        :md="6"
+                      />
+                      <formfield
+                        type_input="select"
+                        :labels="createData.type_of_pays.label"
+                        key_label="type_of_pays"
+                        :arr_select="arr_select"
+                        :error="error"
+                        :cols="12"
+                        :model="template_form.type_of_pays"
+                        :sm="6" 
+                        :md="6"
+                        @changeInput="changeInput"
+                      />
                       <templates :temp="templates_title" @changeData="changeData" />
                     </v-row>
                   </v-container>
-                  <small>*Обязательные поля</small>
                 </v-card-text>
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -83,6 +101,7 @@
             </v-dialog>
           </v-row>
         </div>
+        <p  class="text-center centered" v-if="pays.length ===0">Тут пока нет ни одного платежа:(</p>
         <v-row>
           <v-col v-for="year in years" :key="year" cols="12">
             <p>{{year}} год</p>
@@ -93,7 +112,7 @@
               v-show="monthes(month, pays) !== 0  && (monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0)"
             >
               <v-card v-if="monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0">
-               <v-subheader>{{month}} - Потрачено: {{monthsPays(month, year)[1]}} руб. Получено: {{monthsPays(month, year)[0]}} руб. Итог: {{monthsPays(month, year)[0] - Math.abs(monthsPays(month, year)[1])}} руб.</v-subheader>
+                <v-subheader>{{month}} - Потрачено: {{monthsPays(month, year)[1]}} руб. Получено: {{monthsPays(month, year)[0]}} руб. Итог: {{monthsPays(month, year)[0] - Math.abs(monthsPays(month, year)[1])}} руб.</v-subheader>
                 <!--<v-tabs>
                 <v-tab>Список</v-tab>
                 <v-tab>График</v-tab>
@@ -116,46 +135,74 @@
                 <v-list two-line>
                   <template v-for="n in pays">
                     <div :key="n.id">
-                    <v-list-item v-if="month === n.month && year === yearDate(n.data)">
-                      <v-list-item-icon>
-                        <v-icon v-if="n.type_of_pays=='наличные'">mdi-cash</v-icon>
-                        <v-icon v-else-if="n.type_of_pays=='карта'">mdi-credit-card</v-icon>
-                        <v-icon v-else>mdi-help</v-icon>
-                      </v-list-item-icon>
+                      <v-list-item v-if="month === n.month && year === yearDate(n.data)">
+                        <v-list-item-icon>
+                          <v-icon v-if="n.type_of_pays=='наличные'">mdi-cash</v-icon>
+                          <v-icon v-else-if="n.type_of_pays=='карта'">mdi-credit-card</v-icon>
+                          <v-icon v-else>mdi-help</v-icon>
+                        </v-list-item-icon>
 
-                      <v-list-item-content>
-                        <v-list-item-title>{{ n.title }}</v-list-item-title>
+                        <v-list-item-content>
+                          <v-list-item-title>{{ n.title }}</v-list-item-title>
 
-                        <v-list-item-subtitle class="xs">{{n.cost}} руб., {{formatDate(n.data)}}</v-list-item-subtitle>
-                      </v-list-item-content>
-                      <v-col cols="auto" class="xs">
-                        <v-dialog transition="dialog-bottom-transition" max-width="600">
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-btn color="primary" v-bind="attrs" v-on="on">
-                              <v-icon>mdi-information</v-icon>
-                            </v-btn>
-                            <v-btn color="error" @click="deletePays(n.id)" class="ml-2">
-                              <v-icon>mdi-delete</v-icon>
-                            </v-btn>
-                          </template>
-                          <template v-slot:default="dialog">
-                            <v-card>
-                              <v-toolbar color="primary" dark>{{n.title}}</v-toolbar>
-                              <v-card-text>
-                                <div class="text-h5 pa-5">Назначение платежа: {{n.title}}</div>
-                                <div class="text-h5 pa-5">Сумма платежа: {{n.cost}} руб.</div>
-                                <div class="text-h5 pa-5">Тип платежа: {{n.type_of_pays}}</div>
-                                <div class="text-h5 pa-5">Описание платежа: {{n.body}}</div>
-                                <div class="text-h5 pa-5">Дата платежа: {{formatDate(n.data)}}</div>
-                              </v-card-text>
-                              <v-card-actions class="justify-end">
-                                <v-btn text @click="templatesSend(n)">Добавить в шаблон</v-btn>
-                                <v-btn text @click="dialog.value = false">Закрыть</v-btn>
-                              </v-card-actions>
-                            </v-card>
-                          </template>
-                        </v-dialog>
-                      </v-col>
+                          <v-list-item-subtitle
+                            xs12
+                            sm4
+                            elevation-6
+                          >{{n.cost}} руб., {{formatDate(n.data)}}</v-list-item-subtitle>
+                        </v-list-item-content>
+                        <v-col cols="auto" class="d-flex">
+                          <v-dialog transition="dialog-bottom-transition" max-width="600">
+                            <template v-slot:activator="{ on, attrs }">
+                              <div v-if="$vuetify.breakpoint.mobile">
+                                <v-menu>
+                                  <template v-slot:activator="{ on, attrs }">
+                                    <v-btn color="success" v-bind="attrs" v-on="on">
+                                      <v-icon>mdi-eye</v-icon>
+                                    </v-btn>
+                                  </template>
+
+                                  <v-list>
+                                    <v-btn color="primary" v-bind="attrs" v-on="on">
+                                      <v-icon>mdi-information</v-icon>
+                                    </v-btn>
+                                    <v-btn color="error" @click="deletePays(n.id)" class="ml-2">
+                                      <v-icon>mdi-delete</v-icon>
+                                    </v-btn>
+                                  </v-list>
+                                </v-menu>
+                              </div>
+                              <div v-else>
+                                <v-btn color="primary" v-bind="attrs" v-on="on">
+                                  <v-icon>mdi-information</v-icon>
+                                </v-btn>
+                                <v-btn color="error" @click="deletePays(n.id)" class="ml-2">
+                                  <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                              </div>
+                            </template>
+                            <template v-slot:default="dialog">
+                              <v-card>
+                                <v-card-title dark>
+                                  <span class="text-h5">
+                                    {{n.title}}
+                                  </span>
+                                </v-card-title>
+                                <v-card-text>
+                                  <div class="text-h5 pa-5" v-for="key in Object.keys(labels)" :key="key">
+                                    <a v-if="key !='type_of_pays' && key != 'data'">{{labels[key]}}: {{n[key]}}</a>
+                                    <a v-else-if="key==='data'">Дата платежа: {{ formatDate(n[key])}}</a>
+                                    <a v-else>{{labels[key]}}: {{ firstUpperWord(n[key])}}</a>
+                                  </div>
+                                </v-card-text>
+                                <v-card-actions class="justify-end">
+                                  <v-btn text @click="templatesSend(n)">Добавить в шаблон</v-btn>
+                                  <v-btn text @click="dialog.value = false">Закрыть</v-btn>
+                                </v-card-actions>
+                              </v-card>
+                            </template>
+                          </v-dialog>
+                        </v-col>
                       </v-list-item>
                     </div>
                   </template>
@@ -171,11 +218,13 @@
 
 <script>
 import $ from "jquery";
+import formfield from "../components/FormField";
 import NavAndFooter from "../components/NavAndFooter";
 import Templates from "../components/Templates";
 import Loading from "../components/Loading";
+import EventBus from '../event/event-bus'
 export default {
-  components: { NavAndFooter, Loading, Templates },
+  components: { formfield, NavAndFooter, Loading, Templates },
   metaInfo: {
     title: "Расходы/Доходы - Цитадель"
   },
@@ -184,43 +233,32 @@ export default {
     loading: null,
     load: null,
     years: [],
-    months: [
-      "Декабрь",
-      "Ноябрь",
-      "Октябрь",
-      "Сентябрь",
-      "Август",
-      "Июль",
-      "Июнь",
-      "Май",
-      "Апрель",
-      "Март",
-      "Февраль",
-      "Январь"
-    ],
+    arr_select: [],
+    error: "",
+    labels: [],
+    months: [],
     value: [],
     months_pays: [],
     dialog: false,
     pays: [],
-    author_name: "",
-    title: "",
-    body: "",
-    cost: "",
-    type_of_pays: "",
-    data: "",
     month: "",
+    template_form: {},
     templates: [],
-    templates_title: []
+    templates_title: [],
+    payData: {},
+    createData: {}
   }),
   created() {
     this.userpays();
     this.monthes();
+    this.templates_pays()
   },
   methods: {
     template_pays() {
-      $.get("http://localhost:8002/api/templates/", data => {
+      $.get(this.$store.state.backend_url + "api/templates/", data => {
         //console.log(data);
         this.templates = data;
+        //console.log(this.templates)
         for (let i = 0; i < this.templates.length; i++) {
           this.templates_title.push(this.templates[i].body_template.title);
         }
@@ -228,37 +266,74 @@ export default {
     },
     userpays() {
       this.load = true;
-      $.get("http://localhost:8002/api/pays/", data => {
-        document.cookie = 'auth_token=; max-age=-1'
+      $.get(this.$store.state.backend_url + "api/pays/", data => {
+        document.cookie = "auth_token=; max-age=-1";
         this.pays = data;
+        if(this.pays.length>0){
+          this.labels = this.pays[this.pays.length-1].labels;
+        }
         let year = [];
         for (let i = 0; i < this.pays.length; i++) {
           year.unshift(this.yearDate(this.pays[i].data));
         }
         this.years = Array.from(new Set(year));
-        /*Костыль придумать решение*/ 
-        this.title = "",
-        this.body = "",
-        this.cost = "",
-        this.type_of_pays ="",
+        this.template_pays();
+        this.createPays();
+        this.payData = {};
         this.load = false;
       });
+    },
+    firstUpperWord(word) {
+      return word[0].toUpperCase() + word.substr(1).toLowerCase();
+    },
+    changeInput(key, value) {
+      let month = new Date().toLocaleString("ru", { month: "long" });
+      if (key === "type_of_pays") {
+        value = value.toLowerCase();
+      }
+      this.payData[key] = value;
+      this.payData["month"] =
+        month[0].toUpperCase() + month.substr(1).toLowerCase();
     },
     changeData(value) {
       this.templatesPaste(value);
     },
-    deletePays(id) {
+    createPays(id) {
+      var self = this 
       $.ajax({
-        url: "http://localhost:8002/api/pays/" + id + "/delete_pays/",
-        type: "DELETE",
+        url: this.$store.state.backend_url + "api/pays/",
+        type: "OPTIONS",
         success: function(data) {
-          alert("Удалено");
+          self.createData = data.actions.POST
+          let arr  = data.actions.POST.type_of_pays.choices
+          let month = data.actions.POST.month.choices
+          if(self.months.length === 0){
+            for (let i in month){
+              self.months.unshift(month[i].value)
+            }
+          }
+          for(let i in arr){
+            self.arr_select.push(arr[i].value)
+          }
+          //self.months = self.months.reverse()
+          //console.log(self.months.reverse())
         },
         error: function(response) {
           alert(response.responseJSON);
         }
       });
-      this.userpays();
+    },
+    deletePays(id) {
+      $.ajax({
+        url: this.$store.state.backend_url + "api/pays/" + id + "/delete_pays/",
+        type: "DELETE",
+        success: function(data) {
+        },
+        error: function(response) {
+          alert(response.responseJSON);
+        }
+      });
+      setTimeout(this.userpays, 1500); //this.userpays();
     },
     monthes(mon, array, year) {
       let count = 0;
@@ -285,58 +360,45 @@ export default {
           }
         }
       }
-      return [sum, minussum] /*(
-        "Потрачено: " +
-        minussum.toString() +
-        " руб. " +
-        "Получено: " +
-        sum.toString() +
-        " руб." +
-        " Итог: " +
-        String((sum - Math.abs(minussum)).toFixed(2)) +
-        " руб."
-      ); /* TODO */
+      return [
+        sum,
+        minussum
+      ];
     },
     paysSend(dict) {
-      let month = new Date().toLocaleString("ru", { month: "long" });
-      const payData = {
-        title: this.title,
-        body: this.body,
-        type_of_pays: this.type_of_pays.toLowerCase(),
-        cost: this.cost,
-        month: month[0].toUpperCase() + month.substr(1).toLowerCase()
-      };
-      $.post("http://localhost:8002/api/pays/", payData, data => {}).fail(
+      //console.log(this.payData)
+      $.post(this.$store.state.backend_url + "api/pays/", this.payData, data => {})
+      .done(response => {
+         var self = this;
+         self.dialog = false
+         self.userpays()
+      }
+      )
+      .fail(
         response => {
-          alert(response.responseText);
+            this.error = response.responseJSON;
+            //console.log(this.error);
         }
       );
-      this.dialog = false;
-
-      setTimeout(this.userpays, 1500);
     },
     templatesPaste(value) {
       let obj = this.templates[this.templates_title.indexOf(value)]
         .body_template;
-
-      for (let key in obj) {
-        ////console.log(key);
-        this[key] = obj[key];
-      }
+        //console.log(obj)
+      //this.template_form = obj
+      EventBus.$emit("modelPaste", obj);
     },
     templatesSend(dict) {
-      let body = {
-        title: dict.title,
-        body: dict.body,
-        cost: dict.cost,
-        type_of_pays: dict.type_of_pays
-      };
+      //console.log(dict)
+      let body = {};
+      for (let i in dict){
+        body[i] = dict[i]
+      }
       const templatesData = {
         body_template: JSON.stringify(body)
       };
-      //console.log(templatesData);
       $.post(
-        "http://localhost:8002/api/templates/",
+        this.$store.state.backend_url + "api/templates/",
         templatesData,
         data => {}
       ).fail(response => {
@@ -355,8 +417,7 @@ export default {
     },
     monthString(date) {
       const options = {
-        month: "long",
-
+        month: "long"
       };
       return new Date(date).toLocaleDateString("ru", options);
     },
@@ -367,3 +428,13 @@ export default {
   }
 };
 </script>
+<style>
+.centered {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 50%;
+    left: 0;
+    overflow: auto;
+}
+</style>

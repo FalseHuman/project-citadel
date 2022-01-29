@@ -1,4 +1,3 @@
-import re
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import generics
@@ -15,6 +14,9 @@ from .service import vk
 from rest_framework.decorators import api_view
 from .models import *
 from .serializers import *
+from uuid import uuid4
+from django.core.mail import send_mail
+
 
 class TokenGet(APIView):
     def post(self, request, format=None):
@@ -25,13 +27,52 @@ class TokenGet(APIView):
             return Response({"token": "not exists"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CheckEmail(APIView):
+    def post(self, request, format=None):
+        #print(User.objects.get(email=request.data['email']))
+        try:
+            user = User.objects.get(email=request.data['email'])
+            rand_token = uuid4()
+            TokenReset.objects.create(token_for_user= user, token=rand_token)
+            subject, message = "Восстановление пароля", f"Здравствуйте, {user.username} \nТокен для восстановления пароля - {rand_token} Вставьте токен в форму без пробелов\nЕсли это были не вы просто проигнорируйте данное сообщение"
+            send_mail(
+                subject,
+                message,
+                'emilkhazioff@yandex.ru',
+                [f"{user.email}"],
+                fail_silently=False,
+            )
+            return Response(status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"email": "Пользователя с таким адресом эл.почты не существует или некорректно введён адрес."}, status=status.HTTP_400_BAD_REQUEST)
+
+class CheckToken(APIView):
+    def post(self, request, format=None):
+        #print(request.data['token'])
+        try:
+            token = TokenReset.objects.get(token=request.data['token'])
+            token.delete()
+            return Response(status=status.HTTP_200_OK)
+        except TokenReset.DoesNotExist:
+            return Response({"token": "Токен введён не правильно."}, status=status.HTTP_400_BAD_REQUEST)
+
 class VK_Auth(APIView):
     permission_classes = [permissions.AllowAny, ]
+
     def get(self, request, format=None):
-        token = vk.vk_auth(request.query_params.get('code')) 
-        res = HttpResponseRedirect('/')
-        res.set_cookie(key="auth_token", value=token)
-        return res
+        if request.query_params.get('code'):
+            token = vk.vk_auth(request.query_params.get('code'))
+            res = HttpResponseRedirect('http://localhost:8080/')
+            res.set_cookie(key="auth_token", value=token)
+            return res
+        else:
+            res = HttpResponseRedirect('http://localhost:8080/login')
+            return res
+
+
+class CreateUser(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -97,7 +138,7 @@ class UpdateProfileView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
     serializer_class = UpdateUserSerializer
-    
+
     def put(self, request, format=None):
         serializer = UpdateUserSerializer(
             data=request.data, instance=request.user)
@@ -121,6 +162,7 @@ class UserAvatarUpload(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class TempalatesViewSet(viewsets.ModelViewSet):
     queryset = Templates.objects.all()
     permission_classes = [permissions.IsAuthenticated, ]
@@ -128,10 +170,9 @@ class TempalatesViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.templates.all()
-    
 
     def post(self, request, format=None):
-        #print(request.data)
+        # print(request.data)
         serializer = TemplatesSerializer(
             data=request.data)
         if serializer.is_valid():
@@ -139,6 +180,7 @@ class TempalatesViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ChangePasswordView(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -160,15 +202,18 @@ class ChangePasswordView(viewsets.ModelViewSet):
         user = User.objects
         try:
             username = user.get(username=request.data.get("login"))
+            print(request.data.get("password_1") ==
+                  request.data.get("password_2"))
             if request.data.get("password_1") == request.data.get("password_2"):
                 if is_password_good(request.data.get("password_1")) == True:
                     username.set_password(request.data.get("password_1"))
                     username.save()
                 else:
-                    return Response({"Введённый пароль слишком короткий. Он должен содержать как минимум 8 символов. Он должен содержать  заглавную букву. Введённый пароль слишком широко распространён. Введённый пароль состоит только из цифр."}, status=status.HTTP_400_BAD_REQUEST)
+                    message = "Введённый пароль слишком короткий. Он должен содержать как минимум 8 символов. Он должен содержать  заглавную букву. Введённый пароль слишком широко распространён. Введённый пароль состоит только из цифр."
+                    return Response({'password_1': message, 'password_2': message}, status=status.HTTP_400_BAD_REQUEST)
             else:
-                Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response({'password_1': "Пароли не совпадают.", 'password_2': "Пароли не совпадают."}, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
-            return Response({"Пользователь не существует."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'login': "Пользователь не существует."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_200_OK)

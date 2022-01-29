@@ -3,13 +3,7 @@
     <v-container fluid fill-height class="loginOverlay">
       <v-layout flex align-center justify-center>
         <v-flex xs12 sm4 elevation-6>
-          <v-alert
-            dense
-            outlined
-            type="error"
-            dismissible
-            v-show="non_field_errors.length > 0"
-          >{{ non_field_errors }}</v-alert>
+          <v-alert dense v-model="alert" outlined type="error" dismissible>{{ non_field_errors }}</v-alert>
           <v-toolbar class="pt-5 blue darken-4 d-flex justify-space-around">
             <v-toolbar-title class="white--text mb-6">
               <h4>Вход в Цитадель</h4>
@@ -20,11 +14,18 @@
               <div>
                 <v-form ref="form">
                   <v-text-field label="Логин" v-model="username" required></v-text-field>
-                  <v-text-field label="Пароль" v-model="password" type="password" required></v-text-field>
+                  <v-text-field
+                    label="Пароль"
+                    v-model="password"
+                    :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                    :type="showPassword ? 'text' : 'password'"
+                    required
+                    @click:append="showPassword = !showPassword "
+                  ></v-text-field>
                   <v-layout justify-space-between>
                     <v-btn @click="signIn">Войти</v-btn>
                     <p>
-                      <!--<a href="/reset-password">Забыли пароль?</a>-->
+                      <a href="/reset-password">Забыли пароль?  </a>
                       <a href="/registraitions">Регистрация</a>
                     </p>
                   </v-layout>
@@ -33,7 +34,7 @@
                     <p>
                       Войти с помощью:
                       <a
-                        :href="`https://oauth.vk.com/authorize?client_id=8035574&display=page&redirect_uri=http%3A%2F%2Flocalhost%3A8002%2Fvk-callback&scope=email&response_type=code&v=5.131&state=${getRandomIntInclusive(100000,999999)}`"
+                        :href="`https://oauth.vk.com/authorize?client_id=8035574&display=page&redirect_uri=${this.$store.state.domain_url}vk-callback&scope=email&response_type=code&v=5.131&state=${getRandomIntInclusive(100000,999999)}`"
                       >
                         <img
                           src="https://vk.com/images/icons/pwa/apple/default.png?11"
@@ -60,13 +61,18 @@
 import $ from "jquery";
 export default {
   metaInfo: {
+    title: "Загрузка..."
+  },
+  metaInfo: {
     title: "Вход в систему"
   },
   data() {
     return {
       username: "",
       password: "",
-      non_field_errors: ""
+      non_field_errors: "",
+      alert: null,
+      showPassword: false
     };
   },
   created() {
@@ -95,13 +101,14 @@ export default {
         username: this.username,
         password: this.password
       };
-      $.post("http://localhost:8002/auth/token/login/", credentials, data => {
+      $.post(this.$store.state.backend_url + "auth/token/login/", credentials, data => {
         localStorage.setItem("auth-token", data.auth_token);
         this.$router.push("/");
         location.reload();
       }).fail(response => {
         let json = response.responseJSON;
         this.non_field_errors = json.non_field_errors.toString();
+        this.alert = true;
       });
     }
   }

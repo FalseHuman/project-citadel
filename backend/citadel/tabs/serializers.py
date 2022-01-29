@@ -1,6 +1,9 @@
 from re import template
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
+from rest_framework.fields import SerializerMethodField
+from rest_framework.relations import PKOnlyObject
+from collections import OrderedDict
 from .models import *
 
 
@@ -15,6 +18,25 @@ class TemplatesSerializer(serializers.ModelSerializer):
 
 
 class NotesSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(NotesSerializer, self).__init__(*args, **kwargs)
+
+        if 'labels' in self.fields:
+            raise RuntimeError(
+                'You cant have labels field defined '
+                'while using MyModelSerializer'
+            )
+
+        self.fields['labels'] = SerializerMethodField()
+
+    def get_labels(self, *args):
+        labels = {}
+
+        for field in self.Meta.model._meta.get_fields():
+            if field.name in self.fields:
+                labels[field.name] = field.verbose_name
+
+        return labels
     class Meta:
         model = Notes
         fields = ('id', 'title', 'body')
@@ -25,10 +47,30 @@ class NotesSerializer(serializers.ModelSerializer):
 
 
 class PaysSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(PaysSerializer, self).__init__(*args, **kwargs)
+
+        if 'labels' in self.fields:
+            raise RuntimeError(
+                'You cant have labels field defined '
+                'while using MyModelSerializer'
+            )
+
+        self.fields['labels'] = SerializerMethodField()
+
+    def get_labels(self, *args):
+        labels = {}
+
+        for field in self.Meta.model._meta.get_fields():
+            if field.name in self.fields and field.name not in ['month', 'id']:
+                labels[field.name] = field.verbose_name
+
+        return labels
     class Meta:
         model = Pays
         fields = ('id', 'title', 'body', 'cost', 'data',
                   'type_of_pays', 'month')
+
 
     def create(self, validated_data):
         validated_data['author'] = self.context['request'].user
@@ -36,6 +78,25 @@ class PaysSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        super(UserSerializer, self).__init__(*args, **kwargs)
+
+        if 'labels' in self.fields:
+            raise RuntimeError(
+                'You cant have labels field defined '
+                'while using MyModelSerializer'
+            )
+
+        self.fields['labels'] = SerializerMethodField()
+
+    def get_labels(self, *args):
+        labels = {}
+
+        for field in self.Meta.model._meta.get_fields():
+            if field.name in self.fields:
+                labels[field.name] = field.verbose_name
+
+        return labels
     class Meta:
         model = User
         fields = ('username', 'photo', 'first_name',

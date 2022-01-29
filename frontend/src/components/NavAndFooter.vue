@@ -33,7 +33,7 @@
           </div>
           <div v-else style="margin-left: -10px;">
             <v-avatar v-if="user.photo !== null" color="grey darken-1" size="44">
-              <img :src="`${user.photo}`" />
+              <img :lazy-src="`${user.photo}`" :src="`${user.photo}`" :alt="`${user.photo}`" />
             </v-avatar>
             <v-avatar v-else color="grey darken-1" size="44">
               <img src />
@@ -85,13 +85,13 @@ export default {
   },
   methods: {
     userinfo() {
-      $.get("http://localhost:8002/api/user/", data => {
+      $.get(this.$store.state.backend_url + "api/user/", data => {
         this.user = data[0];
       });
     },
     logout() {
       $.post(
-        "http://localhost:8002/auth/token/logout/",
+        this.$store.state.backend_url + "auth/token/logout/",
         this.token,
         data => {}
       );
