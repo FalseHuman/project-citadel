@@ -23,7 +23,7 @@ from datetime import timedelta
 SECRET_KEY = '@k$p)7j10t0#c-83_9!abxu!1_3y$02*03)igd2#b%)0e573!#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 

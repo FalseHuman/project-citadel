@@ -18,11 +18,6 @@ class TokenReset(models.Model):
         User, related_name='token', on_delete=models.CASCADE)
     token = models.CharField(max_length=255, verbose_name="Token")
 
-class Categories(models.Model):
-    title = models.CharField(max_length=255, verbose_name="Нзвание категории")
-    cost = models.DecimalField(default='0.00', blank=True, max_digits=30,
-                               decimal_places=2, verbose_name='Лимит категории')
-
 class Pays(models.Model):
     TYPE_PAYS = (
         ('карта', 'Карта'),
@@ -44,8 +39,6 @@ class Pays(models.Model):
     )
     author = models.ForeignKey(
         User, related_name='pays', on_delete=models.CASCADE)
-    categories = models.ForeignKey(
-        Categories, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, verbose_name="Назначение платежа")
     body = models.TextField(blank=True, null=True,
                             verbose_name="Описание платежа")

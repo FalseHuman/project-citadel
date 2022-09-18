@@ -4,7 +4,6 @@ from .models import *
 
 admin.site.register(User)
 admin.site.register(Pays)
-admin.site.register(Categories)
 admin.site.register(Notes)
 admin.site.register(Templates)
 admin.site.register(TokenReset)
