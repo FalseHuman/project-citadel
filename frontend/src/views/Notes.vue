@@ -72,6 +72,7 @@
 
                     <v-list-item-content>
                       <v-list-item-title>{{ n.title }}</v-list-item-title>
+                      <v-list-item-subtitle v-html="n.body"></v-list-item-subtitle>
                     </v-list-item-content>
                     <v-col cols="auto">
                       <v-dialog transition="dialog-bottom-transition" max-width="600">
@@ -137,6 +138,10 @@
               </v-list>
             </v-card>
           </v-col>
+          <div class="text-center">
+              <v-btn title="Предыдущая" @click="paramsPagination(previous)"  v-show="previous !== null"><v-icon>mdi-menu-left</v-icon></v-btn>
+               <v-btn title="Следующая" @click="paramsPagination(next)"  v-show="next !== null"><v-icon>mdi-menu-right</v-icon></v-btn>
+            </div>
         </v-row>
       </v-container>
     </div>
@@ -165,17 +170,22 @@ export default {
     notes: [],
     person_name: "",
     title: "",
-    body: ""
+    body: "",     
+    next: null,
+    previous: null
   }),
   created() {
     this.userNotes();
   },
   methods: {
-    userNotes() {
+    userNotes(params=null) {
       this.load = true;
-      $.get(this.$store.state.backend_url + "api/notes/", data => {
+      let url = this.$store.state.backend_url + "api/notes/?" +params
+      $.get(url, data => {
         //console.log(data)
-        this.notes = data;
+        this.next = data.next;
+        this.previous = data.previous;
+        this.notes = data.results;
         //let link = this.notes[0].body
         this.load = false;
       });
@@ -229,6 +239,9 @@ export default {
       });
       this.dialog = false;
       setTimeout(this.userNotes, 1500);
+    },
+     paramsPagination(url){
+      this.userNotes(url.split('?')[1] )
     }
   }
 };

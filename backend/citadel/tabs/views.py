@@ -16,6 +16,7 @@ from .models import *
 from .serializers import *
 from uuid import uuid4
 from django.core.mail import send_mail
+from .pagination import StandardResultsSetPagination
 
 
 class TokenGet(APIView):
@@ -88,10 +89,13 @@ class UserViewSet(viewsets.ModelViewSet):
 class PaysViewSet(viewsets.ModelViewSet):
     queryset = Pays.objects.all().order_by('-id')
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
     serializer_class = PaysSerializer
 
     def get_queryset(self):
-        return self.request.user.pays.all()
+        date = self.request.query_params.get('date').split('-')
+        print(date)
+        return self.request.user.pays.filter(data__year=date[0], data__month=date[1])
 
     @action(detail=True, methods=['delete'])
     def delete_pays(self, request, pk=None):
@@ -140,8 +144,9 @@ class UpdateProfileView(generics.UpdateAPIView):
     serializer_class = UpdateUserSerializer
 
     def put(self, request, format=None):
+        user = User.objects.get(username=request.user.username)
         serializer = UpdateUserSerializer(
-            data=request.data, instance=request.user)
+            data=request.data, instance=user)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)

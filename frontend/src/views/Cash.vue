@@ -23,7 +23,7 @@
                   v-bind="attrs"
                   @click="createPays()"
                   v-on="on"
-                  style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
+                  style="margin-top: -10px; margin-left: 5px;"
                   title="Добавить"
                 >
                   <v-icon dark>mdi-plus</v-icon>
@@ -33,9 +33,9 @@
                   dark
                   small
                   fab
-                  style="margin-bottom: 10px; margin-top: 0; margin-left: 5px;"
+                  style="margin-top: -10px; margin-left: 5px;"
                   title="Обновить"
-                  @click="userpays"
+                  @click="userpays(month)"
                 >
                   <v-icon dark>mdi-refresh</v-icon>
                 </v-btn>
@@ -101,18 +101,14 @@
             </v-dialog>
           </v-row>
         </div>
+        <v-col cols="12" style="margin-bottom: -25px;"><v-text-field type='month' v-model='month'></v-text-field></v-col>
         <p  class="text-center centered" v-if="pays.length ===0">Тут пока нет ни одного платежа:(</p>
-        <v-row>
-          <v-col v-for="year in years" :key="year" cols="12">
-            <p>{{year}} год</p>
+        <v-row v-else>
+          <v-col cols="12">
             <v-col
-              v-for="month in months"
-              :key="month"
-              cols="12"
-              v-show="monthes(month, pays) !== 0  && (monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0)"
             >
-              <v-card v-if="monthsPays(month, year)[0] !==0  || monthsPays(month, year)[1]!==0">
-                <v-subheader>{{month}} - Потрачено: {{monthsPays(month, year)[1]}} руб. Получено: {{monthsPays(month, year)[0]}} руб. Итог: {{monthsPays(month, year)[0] - Math.abs(monthsPays(month, year)[1])}} руб.</v-subheader>
+              <v-card >
+                <v-subheader>Данные за этот месяц - Потрачено: {{date_month.expense}} руб. Получено: {{date_month.income}} руб. Итог: {{date_month.total}} руб.</v-subheader>
                 <!--<v-tabs>
                 <v-tab>Список</v-tab>
                 <v-tab>График</v-tab>
@@ -135,7 +131,7 @@
                 <v-list two-line>
                   <template v-for="n in pays">
                     <div :key="n.id">
-                      <v-list-item v-if="month === n.month && year === yearDate(n.data)">
+                      <v-list-item>
                         <v-list-item-icon>
                           <v-icon v-if="n.type_of_pays=='наличные'">mdi-cash</v-icon>
                           <v-icon v-else-if="n.type_of_pays=='карта'">mdi-credit-card</v-icon>
@@ -209,6 +205,10 @@
                 </v-list>
               </v-card>
             </v-col>
+              <div class="text-center">
+                <v-btn title="Предыдущая" @click="paramsPagination(previous)"  v-show="previous !== null"><v-icon>mdi-menu-left</v-icon></v-btn>
+                <v-btn title="Следующая"  @click="paramsPagination(next)" v-show="next !== null"><v-icon>mdi-menu-right</v-icon></v-btn>
+              </div>
           </v-col>
         </v-row>
       </v-container>
@@ -232,52 +232,53 @@ export default {
   data: () => ({
     loading: null,
     load: null,
-    years: [],
     arr_select: [],
     error: "",
+    month: '',
     labels: [],
-    months: [],
     value: [],
-    months_pays: [],
     dialog: false,
     pays: [],
-    month: "",
+    months: [],
     template_form: {},
     templates: [],
     templates_title: [],
     payData: {},
-    createData: {}
+    createData: {},
+    next: null,
+    previous: null,
+    date_month: null
   }),
   created() {
-    this.userpays();
-    this.monthes();
-    this.templates_pays()
+    let new_data = this.monthString(new Date()).split('.')
+    this.month = new_data[1] + '-' + new_data[0]
+    this.userpays(this.month);
+    this.template_pays()
   },
   methods: {
     template_pays() {
       $.get(this.$store.state.backend_url + "api/templates/", data => {
         //console.log(data);
-        this.templates = data;
+        this.templates = data.results;
         //console.log(this.templates)
         for (let i = 0; i < this.templates.length; i++) {
           this.templates_title.push(this.templates[i].body_template.title);
         }
       });
     },
-    userpays() {
+    userpays(month, params=null) {
       this.load = true;
-      $.get(this.$store.state.backend_url + "api/pays/", data => {
+      let url = params === null? this.$store.state.backend_url + "api/pays/?date=" + month : this.$store.state.backend_url + "api/pays/?" +params
+      //console.log(url)
+      $.get(url, data => {
         document.cookie = "auth_token=; max-age=-1";
-        this.pays = data;
+        this.date_month = data
+        this.next = data.next;
+        this.previous = data.previous;
+        this.pays = data.results;
         if(this.pays.length>0){
           this.labels = this.pays[this.pays.length-1].labels;
         }
-        let year = [];
-        for (let i = 0; i < this.pays.length; i++) {
-          year.unshift(this.yearDate(this.pays[i].data));
-        }
-        this.years = Array.from(new Set(year));
-        this.template_pays();
         this.createPays();
         this.payData = {};
         this.load = false;
@@ -333,37 +334,7 @@ export default {
           alert(response.responseJSON);
         }
       });
-      setTimeout(this.userpays, 1500); //this.userpays();
-    },
-    monthes(mon, array, year) {
-      let count = 0;
-      for (let i = 0; i < array.length; i++) {
-        if (array[i].month === mon) {
-          count += 1;
-        }
-      }
-      return count;
-    },
-    monthsPays(month, year) {
-      let sum = 0;
-      let minussum = 0;
-      for (let i = 0; i < this.pays.length; i++) {
-        let num = Number(this.pays[i].cost);
-        if (
-          this.pays[i].month === month &&
-          this.yearDate(this.pays[i].data) === year
-        ) {
-          if (num > 0) {
-            sum += num;
-          } else {
-            minussum += num;
-          }
-        }
-      }
-      return [
-        sum,
-        minussum
-      ];
+      setTimeout(this.userpays(this.month), 1500); //this.userpays();
     },
     paysSend(dict) {
       //console.log(this.payData)
@@ -371,7 +342,7 @@ export default {
       .done(response => {
          var self = this;
          self.dialog = false
-         self.userpays()
+         self.userpays(self.month)
       }
       )
       .fail(
@@ -408,7 +379,7 @@ export default {
     formatDate(date) {
       const options = {
         year: "numeric",
-        month: "short",
+        month: "numeric",
         day: "numeric",
         hour: "numeric",
         minute: "numeric"
@@ -417,13 +388,13 @@ export default {
     },
     monthString(date) {
       const options = {
-        month: "long"
-      };
+        year: "numeric",
+        month: 'numeric'      
+        };
       return new Date(date).toLocaleDateString("ru", options);
     },
-    yearDate(date) {
-      const options = { year: "numeric" };
-      return new Date(date).toLocaleDateString("ru", options);
+    paramsPagination(url){
+      this.userpays(this.month, url.split('?')[1] )
     }
   }
 };

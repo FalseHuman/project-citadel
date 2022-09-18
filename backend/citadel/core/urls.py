@@ -29,7 +29,7 @@ urlpatterns = [
     path("api/",include("tabs.urls")),
     path("api/user-avatar/", UserAvatarUpload.as_view(), name="rest_user_avatar_upload"),
     path('vk-callback', VK_Auth.as_view(), name="vk"),
-]
+]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += [re_path(r'^.*', include('start.urls'))]
 '''if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)'''

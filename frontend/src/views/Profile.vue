@@ -26,7 +26,7 @@
               <v-row justify="center">
                 <v-dialog v-model="dialog" persistent max-width="600px">
                   <template v-slot:activator="{ on, attrs }">
-                    <v-btn color="primary" dark v-bind="attrs" v-on="on">Pедактировать</v-btn>
+                    <v-btn  color="primary" dark v-bind="attrs" v-on="on" width="40%">Pедактировать</v-btn>
                   </template>
                   <v-card>
                     <v-card-title>
@@ -133,8 +133,7 @@ export default {
       $.get(this.$store.state.backend_url + "api/user/", data => {
         //console.log(data)
         //console.log(document.cookie)
-
-        this.user = data[0];
+        this.user = data.results[0];
         (this.labels = this.user.labels),
           //console.log(this.labels)
           (this.name = this.user.first_name),
@@ -142,7 +141,7 @@ export default {
           (this.family = this.user.last_name),
           (this.email = this.user.email);
         //this.link = data.photo;
-        //this.row = this.user.email_send.toString();
+        this.row = this.user.email_send.toString();
         this.load = false;
       });
     },
@@ -152,7 +151,6 @@ export default {
     updateAvatar() {
       let formData = new FormData();
       formData.append("photo", this.link);
-
       $.ajax({
         url: this.$store.state.backend_url + "api/user-avatar/",
         data: formData,

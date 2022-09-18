@@ -117,10 +117,11 @@ class UpdateUserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'email' in validated_data:
             try:
-                user = User.objects.get(email=validated_data['email'])
-                if instance.username != user.username:
-                    raise serializers.ValidationError(
-                        {'email': 'Этот email уже используется'})
+                users = User.objects.filter(email=validated_data['email'])
+                for usr in users:
+                    if instance.username != usr.username:
+                        raise serializers.ValidationError(
+                            {'email': 'Этот email уже используется'})
             except User.DoesNotExist:
                 pass
         for key, value in validated_data.items():
