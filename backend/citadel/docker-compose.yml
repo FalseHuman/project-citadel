@@ -30,8 +30,8 @@ services:
     container_name: citadel_nginx
     restart: on-failure
     ports:
-      - 80:80
       - 443:443
+      - 80:80
     volumes:
       - ./static:/static
       - ./media:/media
