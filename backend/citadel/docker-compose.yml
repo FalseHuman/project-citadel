@@ -35,7 +35,7 @@ services:
     volumes:
       - ./static:/static
       - ./media:/media
-      - ./ssl:/ssl
+      - ./nginx/certs/ssl:/etc/ssl/certs
     depends_on:
       - web
 
