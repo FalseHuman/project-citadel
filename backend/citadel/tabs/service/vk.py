@@ -5,7 +5,7 @@ from rest_framework.authtoken.models import Token
 from django.conf import settings
 
 def get_vk_email(code: str):
-    url = f'https://oauth.vk.com/access_token?client_id={settings.VK_CLIENT_ID }&client_secret={settings.VK_SECRET}&redirect_uri=https%3A%2F%2Frm.khazieff.cf%2Fvk-callback&code={code}'
+    url = f'https://oauth.vk.com/access_token?client_id={settings.VK_CLIENT_ID }&client_secret={settings.VK_SECRET}&redirect_uri=https://crm.khazieff.cf/vk-callback&code={code}'
     res = requests.get(url)
     if res.status_code == 200:
         r = res.json()
@@ -15,6 +15,7 @@ def get_vk_email(code: str):
 
 def vk_auth(code: str):
     user_data = get_vk_email(code)
+    print(user_data)
     if user_data is not None:
         try:
             user = User.objects.get(email=user_data.get('email'))
