@@ -1,0 +1,12 @@
+{
+    "name": "Цитадел",
+    "short_name": "Цитадель",
+    "description": "Цитадель",
+    "lang": "ru",
+    "start_url": "https://crm.khazieff.cf",
+    "display": "standalone",
+    "orientation": "any",
+    "theme_color": "#e95555",
+    "dir": "ltr",
+    "prefer_related_applications": false
+  }
