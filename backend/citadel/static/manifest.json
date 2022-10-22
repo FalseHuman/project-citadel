@@ -3,7 +3,7 @@
     "short_name": "Цитадель",
     "description": "Цитадель",
     "lang": "ru",
-    "start_url": "https://crm.khazieff.cf",
+    "start_url": "/",
     "display": "standalone",
     "orientation": "any",
     "theme_color": "#e95555",
