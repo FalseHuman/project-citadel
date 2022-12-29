@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выписка по расходам/доходам для {{user.username}} | Цитадель</title>
+</head>
+
+<body>
+    <h1 style="text-align: center;">Цитадель</h1>
+    <!--<p>
+        Сгенерированно </br>
+        <span class="secondary">
+            {{ data }}
+        </span>
+    </p>-->
+    <h3>Пользователь:</h3>
+    <p>
+        Имя: {{ user.first_name }},<br> Фамилия: {{ user.last_name }},<br> Логин в системе: {{user.username}},<br>
+        E-mail: {{ user.email }}<br>
+    </p>
+    <h3>Выписка за {{ data| date:"M" }}.:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Назначение платежа:</th>
+                <th>Описание платежа:</th>
+                <th>Сумма списания/пополнения:</th>
+                <th>Дата платежа:</th>
+                <th>Тип платежа:</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in pays %}
+            <tr class="row{% cycle " 1" "2" %}">
+                <td>{{ item.title }}</td>
+                <td class="num">{{ item.body }}</td>
+                <td class="num">{% if item.cost > 0 %}<strong>{{ item.cost }}руб.</strong> {% else %}{{ item.cost }}руб.{% endif %}</td>
+                <td class="num">{{ item.data }}</td>
+                <td class="num">{{ item.type_of_pays }}</td>
+            </tr>
+            {% endfor %}
+            <tr class="total">
+                <td colspan="3">Получено:</td>
+                <td class="num"></td>
+                <td class="num" style="color: #1bae37">{{ income }} руб.</td>
+            </tr>
+            <tr class="total">
+                <td colspan="3">Потрачено:</td>
+                <td class="num"></td>
+                <td class="num" style="color: #a82d2d">{{ expense }} руб.</td>
+            </tr>
+            <tr class="total">
+                <td colspan="3">Всего:</td>
+                <td class="num"></td>
+                <td class="num">{{ total }} руб.</td>
+            </tr>
+        </tbody>
+    </table>
+    <span class="paid">
+        Сгенерированно {{data}}
+    </span>
+</body>
+
+</html>
