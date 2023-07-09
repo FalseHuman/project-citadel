@@ -143,14 +143,11 @@ DATE_FORMAT = '%d.%m.%Y %H:%M'
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = 'ru-RU'
-TIME_ZONE = 'Asia/Yekaterinburg'
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
-
 USE_L10N = True
+USE_TZ = True
 
-USE_TZ = False
 
 VK_CLIENT_ID = '8035574'
 VK_SECRET = 'JmPYb9dI62HpmOECvHnI'

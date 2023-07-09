@@ -145,7 +145,7 @@
                             xs12
                             sm4
                             elevation-6
-                          >{{n.cost}} руб., {{formatDate(n.data)}}</v-list-item-subtitle>
+                          >{{n.cost}} руб., {{n.data | moment }}</v-list-item-subtitle>
                         </v-list-item-content>
                         <v-col cols="auto" class="d-flex">
                           <v-dialog transition="dialog-bottom-transition" max-width="600">
@@ -187,7 +187,7 @@
                                 <v-card-text>
                                   <div class="text-h5 pa-5" v-for="key in Object.keys(labels)" :key="key">
                                     <a v-if="key !='type_of_pays' && key != 'data'">{{labels[key]}}: {{n[key]}}</a>
-                                    <a v-else-if="key==='data'">Дата платежа: {{ formatDate(n[key])}}</a>
+                                    <a v-else-if="key==='data'">Дата платежа: {{n.data | moment }}</a>
                                     <a v-else>{{labels[key]}}: {{ firstUpperWord(n[key])}}</a>
                                   </div>
                                 </v-card-text>
@@ -218,6 +218,7 @@
 
 <script>
 import $ from "jquery";
+import moment from 'moment-timezone'
 import formfield from "../components/FormField";
 import NavAndFooter from "../components/NavAndFooter";
 import Templates from "../components/Templates";
@@ -228,6 +229,11 @@ export default {
   metaInfo: {
     title: "Расходы/Доходы - Цитадель"
   },
+  filters: {
+  moment: function (date) {
+    return moment.tz(date, Intl.DateTimeFormat().resolvedOptions().timeZone).format("DD.MM.YYYY, HH:mm")
+  }
+  }, 
   name: "Cash",
   data: () => ({
     loading: null,
@@ -384,6 +390,7 @@ export default {
         hour: "numeric",
         minute: "numeric"
       };
+      console.log(date)
       return new Date(date).toLocaleDateString("ru", options);
     },
     monthString(date) {

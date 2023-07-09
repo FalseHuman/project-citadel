@@ -19,6 +19,7 @@ class Command(BaseCommand):
         data = datetime.date.today()
         # TODO: реализовать массовую рассылку
         try:
+            now = datetime.datetime.now()
             email_send_user = User.objects.filter(email_send=True)
             for i in range(len(email_send_user)):
                 subject = 'Доброго времени суток {}, ваши расходы/доходы за этот месяц:'.format(
@@ -29,7 +30,7 @@ class Command(BaseCommand):
                 [email_send_user[i].email])
                 # Формирование PDF.
                 user = User.objects.get(id=email_send_user[i].id)
-                pays = Pays.objects.filter(author=email_send_user[i].id)
+                pays = Pays.objects.filter(author=email_send_user[i].id, data__month=now.month, data__year=now.year)
                 pays_cost = []
                 expense = []
                 income = []
