@@ -22,15 +22,20 @@ class Command(BaseCommand):
             now = datetime.datetime.now()
             email_send_user = User.objects.filter(email_send=True)
             for i in range(len(email_send_user)):
-                subject = 'Доброго времени суток {}, ваши расходы/доходы за этот месяц:'.format(
+                subject = 'Доброго времени суток {}, ваши расходы/доходы за прошлый месяц:'.format(
                     email_send_user[i].username)
-                message = "Выписка расходов/доходов за этот месяц"
+                message = "Выписка расходов/доходов за прошлый месяц"
                 email=EmailMessage(subject,message,
                     'emilkhazioff@yandex.ru',
                 [email_send_user[i].email])
                 # Формирование PDF.
+                month = now.month
+                if month == 12:
+                    month = 0
+                else:
+                    month = month - 1
                 user = User.objects.get(id=email_send_user[i].id)
-                pays = Pays.objects.filter(author=email_send_user[i].id, data__month=now.month, data__year=now.year)
+                pays = Pays.objects.filter(author=email_send_user[i].id, data__month=month, data__year=now.year)
                 pays_cost = []
                 expense = []
                 income = []

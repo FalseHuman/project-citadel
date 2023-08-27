@@ -16,10 +16,12 @@ services:
       - ./.env.dev
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:13
     container_name: citadel_db
+    restart: on-failure
     volumes:
       - citadel_data:/var/lib/postgresql/data/
     env_file:
@@ -36,6 +38,52 @@ services:
       - ./media:/media
     depends_on:
       - web
+
+  celery:
+    build: ./
+    command: celery worker --app=core --loglevel=info --logfile=logs/celery.log
+    container_name: citadel_celery_worker
+    restart: on-failure
+    volumes:
+      - .:/usr/src/app
+    env_file:
+     - ./.env.dev
+    depends_on:
+      - db
+      - web
+      - redis
+
+  celery-beat:
+    build: ./
+    command: celery -A core beat -l info
+    container_name: citadel_celery_beat
+    restart: on-failure
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - ./.env.dev
+    depends_on:
+     - db
+     - redis
+
+  redis:
+    image: redis:5-alpine
+    restart: on-failure
+    container_name: citadel_redis
+
+  # dashboard:
+  #   build: ./
+  #   container_name: citadel_flower
+  #   command:  flower -A core --port=5555 --broker=redis://redis:6379/0
+  #   ports:
+  #     - 5555:5555
+  #   env_file:
+  #     - ./.env.dev
+  #   depends_on:
+  #     - db
+  #     - web
+  #     - redis
+  #     - celery
 
 volumes:
   citadel_data:

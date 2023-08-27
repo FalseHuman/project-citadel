@@ -57,3 +57,8 @@ webencodings==0.5.1
 whitenoise==5.3.0
 wrapt==1.12.1
 zopfli==0.1.9
+celery-once==3.0.1
+django-celery-beat==2.2.0
+celery==4.4.1
+redis==3.4.1
+flower==0.9.3

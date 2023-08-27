@@ -111,6 +111,17 @@ DATABASES = {
     }
 }
 
+from celery.schedules import crontab
+
+import tabs.tasks
+
+CELERY_BEAT_SCHEDULE = {
+    "email_send": {
+        "task": "tabs.tasks.email_send",
+        "schedule": crontab(day_of_month=1),
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -136,6 +147,9 @@ EMAIL_PORT = 465
 EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
 
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER', 'redis://redis:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_BROKER', 'redis://redis:6379/0')
+
 AUTH_USER_MODEL = 'tabs.User'
 
 DATE_FORMAT = '%d.%m.%Y %H:%M'
@@ -149,8 +163,9 @@ USE_L10N = True
 USE_TZ = True
 
 
-VK_CLIENT_ID = '8035574'
-VK_SECRET = 'JmPYb9dI62HpmOECvHnI'
+VK_CLIENT_ID = os.environ.get('VK_CLIENT_ID')
+VK_SECRET = os.environ.get('VK_SECRET')
+
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
