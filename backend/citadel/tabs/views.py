@@ -15,7 +15,7 @@ from rest_framework.decorators import api_view
 from .models import *
 from .serializers import *
 from uuid import uuid4
-from django.core.mail import send_mail
+from .tasks import delay_send_email
 from .pagination import StandardResultsSetPagination
 
 
@@ -36,11 +36,10 @@ class CheckEmail(APIView):
             rand_token = uuid4()
             TokenReset.objects.create(token_for_user= user, token=rand_token)
             subject, message = "Восстановление пароля", f"Здравствуйте, {user.username} \nТокен для восстановления пароля - {rand_token} Вставьте токен в форму без пробелов\nЕсли это были не вы просто проигнорируйте данное сообщение"
-            send_mail(
-                subject,
-                message,
-                'emilkhazioff@yandex.ru',
-                [f"{user.email}"],
+            delay_send_email.delay(
+                subject=subject,
+                message=message,
+                user_email = user.email,
                 fail_silently=False,
             )
             return Response(status=status.HTTP_200_OK)
