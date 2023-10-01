@@ -62,11 +62,11 @@ class VK_Auth(APIView):
     def get(self, request, format=None):
         if request.query_params.get('code'):
             token = vk.vk_auth(request.query_params.get('code'))
-            res = HttpResponseRedirect('https://crm.khazieff.cf/')
+            res = HttpResponseRedirect('http://92.255.107.252/')
             res.set_cookie(key="auth_token", value=token)
             return res
         else:
-            res = HttpResponseRedirect('https://crm.khazieff.cf/login')
+            res = HttpResponseRedirect('http://92.255.107.252/login')
             return res
 
 

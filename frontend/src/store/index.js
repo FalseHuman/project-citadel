@@ -9,8 +9,8 @@ const store = new Vuex.Store({
        // parsing
     //},
     state: {
-        backend_url: 'https://crm.khazieff.cf/',
-        domain_url: 'https://crm.khazieff.cf/'
+        backend_url: 'http://92.255.107.252/',
+        domain_url: 'http://92.255.107.252/'
     }
 })
 

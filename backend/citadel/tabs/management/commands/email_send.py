@@ -30,8 +30,8 @@ class Command(BaseCommand):
                 [email_send_user[i].email])
                 # Формирование PDF.
                 month = now.month
-                if month == 12:
-                    month = 0
+                if month == 1:
+                    month = 12
                 else:
                     month = month - 1
                 user = User.objects.get(id=email_send_user[i].id)
